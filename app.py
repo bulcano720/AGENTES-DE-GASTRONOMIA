@@ -158,7 +158,7 @@ SALUDO_CLIENTE = (
 def invocar_llama(mensajes):
     response = client.chat.completions.create(
         messages=mensajes,
-        model="llama-3.3-70b-versatile",
+        model="openai/gpt-oss-120b",
         max_tokens=600,
         temperature=0.7
     )
