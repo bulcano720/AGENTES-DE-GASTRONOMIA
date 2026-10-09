@@ -8,7 +8,7 @@ from huggingface_hub import InferenceClient
 # CONFIGURACIÓN DE PÁGINA Y ESTILO CSS FUTURISTA / HUD
 # ==============================================================================
 st.set_page_config(
-    page_title="HUD Restaurante Multiagent",
+    page_title="Restaurante Multiagente",
     page_icon="🍽️",
     layout="wide"
 )
@@ -67,6 +67,19 @@ st.markdown("""
         color: #ffd9a0;
         font-size: 13px;
     }
+    .estado-badge {
+        display: inline-block;
+        padding: 4px 10px;
+        border-radius: 12px;
+        font-weight: bold;
+        font-size: 12px;
+        margin-left: 8px;
+    }
+    .estado-recibido { background: #555; color: #fff; }
+    .estado-en_preparacion { background: #ff8c00; color: #1a0a00; }
+    .estado-listo { background: #28a745; color: #fff; }
+    .estado-en_camino { background: #007bff; color: #fff; }
+    .estado-entregado { background: #6c757d; color: #fff; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -85,6 +98,15 @@ client = InferenceClient(
 
 INTEGRANTES = "Daniel Andres Jara Olivera | Daniel Felipe Escobar Ramirez | Diana Carolina León Ocampo | Michel Harold Silva Romero"
 DOCENTE = "Ricardo Alberto Jimenez"
+
+# ==============================================================================
+# 🔐 CREDENCIALES DE ACCESO A COCINA
+# ==============================================================================
+COCINA_USER = "cocina"
+COCINA_PASS = "cocina123"
+
+if "cocina_autenticado" not in st.session_state:
+    st.session_state["cocina_autenticado"] = False
 
 # ==============================================================================
 # 📋 MENÚ DEL RESTAURANTE
@@ -119,47 +141,24 @@ MENU = {
 }
 
 # ==============================================================================
-# PROMPTS DE ROLES
+# PROMPTS
 # ==============================================================================
-PROMPTS_ROLES = {
-    "👤 Cliente (Mesa)": (
-        "Eres Sofía, mesera IA del restaurante, atendiendo a un cliente SENTADO EN MESA. "
-        "Eres cálida, cordial y eficiente. Ayudas a elegir platos del menú, preguntas por "
-        "alergias, sugieres entradas/bebidas/postres, confirmas pedidos y avisas el tiempo "
-        "estimado. Confirmas cuando el mesero llevará la comida a la mesa."
-    ),
-    "📱 Cliente (Domicilio)": (
-        "Eres Sofía, asistente IA del restaurante atendiendo a un cliente para DOMICILIO. "
-        "Amable y clara. Tomas pedido, pides dirección y teléfono, informas tiempo de "
-        "preparación + tiempo de entrega, y avisas cuando el repartidor sale con el pedido."
-    ),
-    "👨‍🍳 Cocinero": (
-        "Eres el Chef IA del restaurante. Recibes pedidos estructurados, informas tiempo "
-        "estimado de preparación, actualizas estados (recibido → en_preparacion → listo), "
-        "avisas si falta un ingrediente y notificas cuando el plato está listo para entregar."
-    ),
-    "🧑‍💼 Mesero": (
-        "Eres el mesero IA del restaurante. Recibes alertas cuando un pedido está listo "
-        "en cocina y debes llevarlo a la mesa correspondiente. Confirmas cuando entregas "
-        "el pedido. Puedes consultar detalles (alergias, notas) de cualquier pedido."
-    ),
-    "🛵 Repartidor": (
-        "Eres el repartidor IA del restaurante. Recibes alertas cuando un pedido para "
-        "domicilio está listo, con dirección y teléfono del cliente. Confirmas recogida "
-        "y entrega. Informas al cliente cuando vas en camino."
-    ),
-}
+PROMPT_CLIENTE = (
+    "Eres Sofía, la asistente IA del restaurante 'Sabor Digital'. Eres cálida, "
+    "cordial y eficiente. Ayudas al cliente a elegir platos del menú, preguntas por "
+    "alergias, sugieres entradas/bebidas/postres, y confirmas el pedido. Cuando el "
+    "cliente confirme, indícale su número de pedido y el tiempo estimado de preparación. "
+    "También puedes informarle el estado actual de su pedido si te lo pregunta. "
+    "Responde siempre en español y con calidez."
+)
 
-SALUDOS = {
-    "👤 Cliente (Mesa)": "¡Hola! 👋 Soy **Sofía**, tu mesera IA. Bienvenido al restaurante 🍽️. ¿Te muestro el menú o ya sabes qué se te antoja hoy?",
-    "📱 Cliente (Domicilio)": "¡Hola! 🛵 Soy **Sofía**, asistente de domicilios. Con gusto tomo tu pedido. ¿Qué se te antoja hoy?",
-    "👨‍🍳 Cocinero": "👨‍🍳 **Chef IA** en línea. Listo para recibir pedidos y reportar tiempos. ¿Nuevo pedido o consulta de estado?",
-    "🧑‍💼 Mesero": "🧑‍💼 **Mesero IA** activo. Recibirás alertas cuando haya pedidos listos para llevar a mesa.",
-    "🛵 Repartidor": "🛵 **Repartidor IA** activo. Te avisaré cuando tengas un pedido listo para entrega a domicilio.",
-}
+SALUDO_CLIENTE = (
+    "¡Hola! 👋 Soy **Sofía**, tu asistente IA del restaurante 🍽️. "
+    "Puedo mostrarte el menú, tomar tu pedido y avisarte cuando esté listo. "
+    "¿Qué se te antoja hoy?"
+)
 
 def invocar_llama(mensajes):
-    """Consulta a Llama 3.1 en Hugging Face."""
     response = client.chat_completion(
         messages=mensajes,
         max_tokens=600,
@@ -168,7 +167,6 @@ def invocar_llama(mensajes):
     return response.choices[0].message.content
 
 def texto_menu_para_prompt():
-    """Convierte el menú a texto legible para el prompt."""
     lineas = []
     for cat, platos in MENU.items():
         lineas.append(f"\n{cat}:")
@@ -200,7 +198,7 @@ def crear_pedido(tipo_entrega, mesa=None, direccion=None, telefono=None,
         cat = it.get("categoria")
         plato = it.get("plato")
         if cat in MENU and plato in MENU[cat]:
-            tiempo_cocina += MENU[cat][plato]["tiempo"]
+            tiempo_cocina += MENU[cat][plato]["tiempo"] * it.get("cantidad", 1)
 
     tiempo_entrega = 20 if tipo_entrega == "domicilio" else 0
 
@@ -225,7 +223,6 @@ def cambiar_estado(pid, nuevo_estado):
         st.session_state["pedidos"][pid]["estado"] = nuevo_estado
 
 def resumen_pedidos_texto():
-    """Devuelve texto con los pedidos activos."""
     pedidos = st.session_state["pedidos"]
     if not pedidos:
         return "Sin pedidos activos."
@@ -237,6 +234,9 @@ def resumen_pedidos_texto():
             f"- {p['id']} | {p['estado']} | Ubicación: {ubicacion} | Items: {items_str}"
         )
     return "\n".join(lineas)
+
+def badge_estado(estado):
+    return f'<span class="estado-badge estado-{estado}">{estado.upper().replace("_", " ")}</span>'
 
 # ==============================================================================
 # ENCABEZADO
@@ -250,57 +250,86 @@ st.markdown(f"""
 """, unsafe_allow_html=True)
 
 # ==============================================================================
-# PESTAÑAS
+# 🧭 SELECTOR DE VISTA PRINCIPAL (CLIENTE vs COCINA con login)
 # ==============================================================================
-tab_menu, tab_pedidos, tab_chat = st.tabs([
-    "📋 Menú", "📦 Panel de Pedidos", "💬 Chat por Rol"
-])
+vista = st.radio(
+    "🧭 SELECCIONA LA VISTA:",
+    ["👤 Vista Cliente (Usuario)", "👨‍🍳 Vista Cocina / Operación"],
+    horizontal=True
+)
 
-# ------------------------------------------------------------------------------
-# TAB 1: MENÚ
-# ------------------------------------------------------------------------------
-with tab_menu:
-    st.subheader("📋 Nuestro Menú")
-    cols = st.columns(len(MENU))
-    for i, (cat, platos) in enumerate(MENU.items()):
-        with cols[i]:
-            st.markdown(f"### {cat}")
-            for nombre, info in platos.items():
-                alerg = ", ".join(info["alergenos"]) if info["alergenos"] else "sin alérgenos"
-                st.markdown(
-                    f"**{nombre}**  \n"
-                    f"💰 ${info['precio']:,}  \n"
-                    f"⏱️ {info['tiempo']} min  \n"
-                    f"⚠️ {alerg}"
-                )
+st.divider()
 
-# ------------------------------------------------------------------------------
-# TAB 2: PANEL DE PEDIDOS
-# ------------------------------------------------------------------------------
-with tab_pedidos:
-    st.subheader("📦 Panel de Pedidos en Vivo")
+# ----------------------- LOGIN OBLIGATORIO PARA COCINA -----------------------
+if vista == "👨‍🍳 Vista Cocina / Operación" and not st.session_state["cocina_autenticado"]:
+    st.warning("🔒 Acceso restringido. Ingresa tus credenciales de cocina.")
 
-    # --- Formulario rápido para crear pedidos manualmente ---
-    with st.expander("➕ Crear pedido manualmente (para pruebas)"):
-        col1, col2 = st.columns(2)
-        with col1:
+    with st.form("login_cocina"):
+        usuario = st.text_input("Usuario:")
+        contrasena = st.text_input("Contraseña:", type="password")
+        entrar = st.form_submit_button("🔓 Ingresar")
+
+    if entrar:
+        if usuario == COCINA_USER and contrasena == COCINA_PASS:
+            st.session_state["cocina_autenticado"] = True
+            st.success("✅ Acceso concedido. Cargando panel de cocina...")
+            st.rerun()
+        else:
+            st.error("❌ Usuario o contraseña incorrectos.")
+
+    st.stop()  # Detiene la ejecución para no renderizar la vista cocina
+
+# -----------------------------------------------------------------------------
+# Botón para cerrar sesión de cocina (solo visible si ya está autenticado)
+# -----------------------------------------------------------------------------
+if vista == "👨‍🍳 Vista Cocina / Operación" and st.session_state["cocina_autenticado"]:
+    col_logout, _ = st.columns([1, 4])
+    with col_logout:
+        if st.button("🔒 Cerrar sesión de cocina"):
+            st.session_state["cocina_autenticado"] = False
+            st.rerun()
+
+# ==============================================================================
+# 👤 VISTA CLIENTE
+# ==============================================================================
+if vista == "👤 Vista Cliente (Usuario)":
+
+    col_menu, col_chat = st.columns([1.2, 1])
+
+    # ------------------------------ COLUMNA MENÚ ------------------------------
+    with col_menu:
+        st.subheader("📋 Nuestro Menú")
+
+        for cat, platos in MENU.items():
+            with st.expander(f"{cat} ({len(platos)} platos)", expanded=False):
+                for nombre, info in platos.items():
+                    alerg = ", ".join(info["alergenos"]) if info["alergenos"] else "sin alérgenos"
+                    st.markdown(
+                        f"**{nombre}** — 💰 ${info['precio']:,} — ⏱️ {info['tiempo']} min  \n"
+                        f"⚠️ _{alerg}_"
+                    )
+
+        st.divider()
+        st.subheader("🛒 Hacer Pedido Rápido")
+        with st.form("form_pedido_cliente"):
             tipo = st.selectbox("Tipo de entrega:", ["mesa", "domicilio"])
-            cliente_nombre = st.text_input("Nombre del cliente:", value="Cliente Demo")
+            cliente_nombre = st.text_input("Tu nombre:", value="Cliente")
             if tipo == "mesa":
-                mesa_input = st.text_input("Mesa:", value="1")
-                dir_input = None
-                tel_input = None
+                mesa_input = st.text_input("Número de mesa:", value="1")
+                dir_input, tel_input = None, None
             else:
                 dir_input = st.text_input("Dirección:", value="Cra 45 #12-34")
                 tel_input = st.text_input("Teléfono:", value="3001234567")
                 mesa_input = None
-        with col2:
+
             categoria_sel = st.selectbox("Categoría:", list(MENU.keys()))
             plato_sel = st.selectbox("Plato:", list(MENU[categoria_sel].keys()))
             cantidad_sel = st.number_input("Cantidad:", min_value=1, max_value=10, value=1)
             alergias_input = st.text_input("Alergias (separadas por coma):", value="")
 
-        if st.button("✅ Registrar pedido"):
+            enviar = st.form_submit_button("✅ Enviar pedido a cocina")
+
+        if enviar:
             items = [{
                 "categoria": categoria_sel,
                 "plato": plato_sel,
@@ -316,24 +345,115 @@ with tab_pedidos:
                 items=items,
                 alergias=alergias_lista,
             )
-            st.success(f"Pedido {pid} creado con éxito.")
+            st.success(f"✅ Pedido **{pid}** enviado a cocina. Tiempo estimado: {st.session_state['pedidos'][pid]['tiempo_cocina']} min.")
+
+    # ------------------------------ COLUMNA CHAT ------------------------------
+    with col_chat:
+        st.subheader("💬 Chat con Sofía")
+
+        # --- Estado de pedidos del cliente ---
+        pedidos_cliente = list(st.session_state["pedidos"].values())
+        if pedidos_cliente:
+            st.markdown("### 📦 Estado de tus pedidos")
+            for p in reversed(pedidos_cliente):
+                items_txt = ", ".join([f"{i['cantidad']}x {i['plato']}" for i in p["items"]])
+                st.markdown(
+                    f"<div class='pedido-card'>"
+                    f"<b>{p['id']}</b> {badge_estado(p['estado'])}<br>"
+                    f"Items: {items_txt}<br>"
+                    f"Hora: {p['hora']} | Tiempo cocina: {p['tiempo_cocina']} min"
+                    f"</div>",
+                    unsafe_allow_html=True
+                )
+        else:
+            st.info("Aún no tienes pedidos registrados.")
+
+        st.divider()
+
+        # --- Chat ---
+        chat_key = "chat_cliente"
+        if chat_key not in st.session_state:
+            st.session_state[chat_key] = [
+                {"role": "assistant", "content": SALUDO_CLIENTE}
+            ]
+
+        chat_container = st.container(height=400)
+        with chat_container:
+            for msg in st.session_state[chat_key]:
+                st.chat_message(msg["role"]).write(msg["content"])
+
+        if user_input := st.chat_input("Escribe tu mensaje a Sofía..."):
+            st.session_state[chat_key].append({"role": "user", "content": user_input})
+            with chat_container:
+                st.chat_message("user").write(user_input)
+
+            resumen = resumen_pedidos_texto()
+            system_prompt = (
+                f"{PROMPT_CLIENTE}\n\n"
+                f"📋 MENÚ:\n{MENU_TEXTO}\n\n"
+                f"📦 PEDIDOS ACTIVOS:\n{resumen}\n\n"
+                "INSTRUCCIONES:\n"
+                "- Si el cliente confirma un pedido, recuérdale que puede registrarlo en el formulario.\n"
+                "- Si pregunta por el estado de su pedido, infórmalo según los pedidos activos.\n"
+                "- Responde con calidez en español."
+            )
+
+            mensajes_api = [{"role": "system", "content": system_prompt}]
+            for m in st.session_state[chat_key]:
+                mensajes_api.append({"role": m["role"], "content": m["content"]})
+
+            with chat_container:
+                with st.chat_message("assistant"):
+                    with st.spinner("Pensando..."):
+                        try:
+                            respuesta = invocar_llama(mensajes_api)
+                            st.write(respuesta)
+                            st.session_state[chat_key].append(
+                                {"role": "assistant", "content": respuesta}
+                            )
+                        except Exception as e:
+                            st.error(f"❌ Error: {str(e)}")
+
+        if st.button("🗑️ Limpiar chat"):
+            st.session_state[chat_key] = [
+                {"role": "assistant", "content": SALUDO_CLIENTE}
+            ]
             st.rerun()
 
-    st.divider()
+# ==============================================================================
+# 👨‍🍳 VISTA COCINA / OPERACIÓN
+# ==============================================================================
+elif vista == "👨‍🍳 Vista Cocina / Operación" and st.session_state["cocina_autenticado"]:
+
+    st.subheader("👨‍🍳 Panel de Cocina y Operación")
+    st.caption("Aquí llegan los pedidos del cliente. Cambia el estado según avance la preparación.")
 
     pedidos = st.session_state["pedidos"]
     if not pedidos:
-        st.info("Aún no hay pedidos. Puedes crearlos manualmente arriba o conversando con el agente.")
+        st.info("⏳ No hay pedidos pendientes. Esperando nuevas órdenes del cliente...")
     else:
+        # Métricas rápidas
+        col_m1, col_m2, col_m3, col_m4 = st.columns(4)
+        col_m1.metric("📥 Recibidos", sum(1 for p in pedidos.values() if p["estado"] == "recibido"))
+        col_m2.metric("🔥 En preparación", sum(1 for p in pedidos.values() if p["estado"] == "en_preparacion"))
+        col_m3.metric("✅ Listos", sum(1 for p in pedidos.values() if p["estado"] == "listo"))
+        col_m4.metric("🚀 En camino / Entregados",
+                      sum(1 for p in pedidos.values() if p["estado"] in ("en_camino", "entregado")))
+
+        st.divider()
+
         for pid, p in list(pedidos.items()):
             with st.container():
-                st.markdown(f"#### 🧾 {pid} — {p['cliente']} ({p['tipo'].upper()})")
+                st.markdown(
+                    f"#### 🧾 {pid} — {p['cliente']} ({p['tipo'].upper()}) {badge_estado(p['estado'])}",
+                    unsafe_allow_html=True
+                )
                 items_txt = ", ".join([f"{i['cantidad']}x {i['plato']}" for i in p["items"]]) or "—"
                 ubicacion = p["mesa"] or p["direccion"] or "—"
+
                 st.markdown(
                     f"""<div class="pedido-card">
-                    <b>Estado:</b> {p['estado'].upper()}<br>
-                    <b>Mesa/Dirección:</b> {ubicacion}<br>
+                    <b>Ubicación:</b> {ubicacion}<br>
                     <b>Items:</b> {items_txt}<br>
                     <b>Alergias:</b> {', '.join(p['alergias']) or 'ninguna'}<br>
                     <b>Tiempo cocina:</b> {p['tiempo_cocina']} min |
@@ -343,121 +463,32 @@ with tab_pedidos:
                     unsafe_allow_html=True
                 )
 
-                col1, col2, col3, col4 = st.columns(4)
-                if col1.button("👨‍🍳 Preparando", key=f"prep_{pid}"):
+                # Botones según estado
+                c1, c2, c3, c4, c5 = st.columns(5)
+
+                if c1.button("🔥 Preparando", key=f"prep_{pid}", disabled=(p["estado"] != "recibido")):
                     cambiar_estado(pid, "en_preparacion")
                     st.rerun()
-                if col2.button("✅ Listo", key=f"listo_{pid}"):
+
+                if c2.button("✅ Listo", key=f"listo_{pid}", disabled=(p["estado"] != "en_preparacion")):
                     cambiar_estado(pid, "listo")
-                    destino = "mesero" if p["tipo"] == "mesa" else "repartidor"
-                    st.success(f"🔔 Pedido {pid} LISTO. Notificar al {destino}.")
                     st.rerun()
-                if col3.button("🍽️ Entregado", key=f"ent_{pid}"):
-                    cambiar_estado(pid, "entregado")
-                    st.rerun()
-                if col4.button("🗑️ Eliminar", key=f"del_{pid}"):
+
+                # Botón especial según tipo
+                if p["tipo"] == "mesa":
+                    if c3.button("🍽️ Entregado en mesa", key=f"ent_{pid}", disabled=(p["estado"] != "listo")):
+                        cambiar_estado(pid, "entregado")
+                        st.rerun()
+                else:
+                    if c3.button("🛵 En camino", key=f"cam_{pid}", disabled=(p["estado"] != "listo")):
+                        cambiar_estado(pid, "en_camino")
+                        st.rerun()
+                    if c4.button("📬 Entregado", key=f"ent_{pid}", disabled=(p["estado"] != "en_camino")):
+                        cambiar_estado(pid, "entregado")
+                        st.rerun()
+
+                if c5.button("🗑️ Eliminar", key=f"del_{pid}"):
                     del st.session_state["pedidos"][pid]
                     st.rerun()
+
                 st.divider()
-
-# ------------------------------------------------------------------------------
-# TAB 3: CHAT POR ROL
-# ------------------------------------------------------------------------------
-with tab_chat:
-    st.subheader("💬 Terminal de Atención por Rol")
-
-    rol_actual = st.selectbox(
-        "SELECCIONAR ROL:",
-        options=list(PROMPTS_ROLES.keys())
-    )
-
-    # --- Contexto según rol ---
-    contexto_extra = ""
-    if rol_actual == "👤 Cliente (Mesa)":
-        mesa = st.text_input("Número de mesa:", value="1")
-        contexto_extra = f"El cliente está en la MESA {mesa}."
-    elif rol_actual == "📱 Cliente (Domicilio)":
-        direccion = st.text_input("Dirección de entrega:", value="Cra 45 #12-34")
-        telefono = st.text_input("Teléfono:", value="3001234567")
-        contexto_extra = f"Pedido a domicilio. Dirección: {direccion}. Teléfono: {telefono}."
-    elif rol_actual == "🧑‍💼 Mesero":
-        pedidos_listos_mesa = [p for p in st.session_state["pedidos"].values()
-                               if p["estado"] == "listo" and p["tipo"] == "mesa"]
-        if pedidos_listos_mesa:
-            st.warning("🔔 **Pedidos listos para llevar a mesa:**")
-            for p in pedidos_listos_mesa:
-                st.write(f"- {p['id']} → Mesa {p['mesa']}")
-        else:
-            st.info("Sin pedidos listos para mesa por ahora.")
-    elif rol_actual == "🛵 Repartidor":
-        pedidos_listos_dom = [p for p in st.session_state["pedidos"].values()
-                              if p["estado"] == "listo" and p["tipo"] == "domicilio"]
-        if pedidos_listos_dom:
-            st.warning("🔔 **Pedidos listos para entrega a domicilio:**")
-            for p in pedidos_listos_dom:
-                st.write(f"- {p['id']} → {p['direccion']} | Tel: {p['telefono']}")
-        else:
-            st.info("Sin pedidos listos para domicilio por ahora.")
-    elif rol_actual == "👨‍🍳 Cocinero":
-        activos = [p for p in st.session_state["pedidos"].values()
-                   if p["estado"] in ("recibido", "en_preparacion")]
-        if activos:
-            st.warning(f"👨‍🍳 **{len(activos)} pedido(s) en cocina:**")
-            for p in activos:
-                items_str = ", ".join([i["plato"] for i in p["items"]])
-                st.write(f"- {p['id']} ({p['estado']}) → {items_str}")
-        else:
-            st.info("Sin pedidos pendientes en cocina.")
-
-    # --- Historial de chat por rol ---
-    chat_key = f"messages_{rol_actual}"
-    if chat_key not in st.session_state:
-        st.session_state[chat_key] = [
-            {"role": "assistant", "content": SALUDOS[rol_actual]}
-        ]
-
-    for msg in st.session_state[chat_key]:
-        st.chat_message(msg["role"]).write(msg["content"])
-
-    # --- Input del usuario ---
-    if user_input := st.chat_input("Escribe tu mensaje..."):
-        st.session_state[chat_key].append({"role": "user", "content": user_input})
-        st.chat_message("user").write(user_input)
-
-        # Calcular resumen ANTES del f-string
-        resumen = resumen_pedidos_texto()
-
-        instrucciones = PROMPTS_ROLES[rol_actual]
-        system_prompt = (
-            f"{instrucciones}\n\n"
-            f"📋 MENÚ DISPONIBLE DEL RESTAURANTE:\n{MENU_TEXTO}\n\n"
-            f"📦 PEDIDOS ACTIVOS EN EL SISTEMA:\n{resumen}\n\n"
-            f"CONTEXTO ADICIONAL: {contexto_extra}\n\n"
-            "INSTRUCCIONES:\n"
-            "- Cuando un cliente confirme un pedido, dile que se registró y da tiempo estimado.\n"
-            "- Si eres cocinero y marcas listo, avisa: '✅ Pedido listo para mesero/repartidor'.\n"
-            "- Si eres mesero y te avisan de pedido listo, confirma cuando lo entregas.\n"
-            "- Si eres repartidor, confirma salida y entrega.\n"
-            "- Responde SIEMPRE con calidez y en español."
-        )
-
-        mensajes_api = [{"role": "system", "content": system_prompt}]
-        for m in st.session_state[chat_key]:
-            mensajes_api.append({"role": m["role"], "content": m["content"]})
-
-        with st.chat_message("assistant"):
-            with st.spinner("Pensando respuesta..."):
-                try:
-                    respuesta = invocar_llama(mensajes_api)
-                    st.write(respuesta)
-                    st.session_state[chat_key].append(
-                        {"role": "assistant", "content": respuesta}
-                    )
-                except Exception as e:
-                    st.error(f"❌ Error: {str(e)}")
-
-    if st.button("🗑️ Limpiar chat de este rol", key=f"limpiar_{rol_actual}"):
-        st.session_state[chat_key] = [
-            {"role": "assistant", "content": SALUDOS[rol_actual]}
-        ]
-        st.rerun()
