@@ -2,7 +2,7 @@ import os
 import random
 from datetime import datetime
 import streamlit as st
-from huggingface_hub import InferenceClient
+from groq import Groq
 
 # ==============================================================================
 # CONFIGURACIÓN DE PÁGINA Y ESTILO CSS FUTURISTA / HUD
@@ -84,17 +84,14 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ==============================================================================
-# CLIENTE HUGGING FACE
+# CLIENTE GROQ
 # ==============================================================================
 try:
-    HF_TOKEN = st.secrets["HF_TOKEN"]
+    GROQ_API_KEY = st.secrets["GROQ_API_KEY"]
 except Exception:
-    HF_TOKEN = os.getenv("HF_TOKEN", "")
+    GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
 
-client = InferenceClient(
-    model="meta-llama/Llama-3.1-8B-Instruct",
-    token=HF_TOKEN
-)
+client = Groq(api_key=GROQ_API_KEY)
 
 INTEGRANTES = "Daniel Andres Jara Olivera | Daniel Felipe Escobar Ramirez | Diana Carolina León Ocampo | Michel Harold Silva Romero"
 DOCENTE = "Ricardo Alberto Jimenez"
@@ -159,8 +156,9 @@ SALUDO_CLIENTE = (
 )
 
 def invocar_llama(mensajes):
-    response = client.chat_completion(
+    response = client.chat.completions.create(
         messages=mensajes,
+        model="llama-3.3-70b-versatile",
         max_tokens=600,
         temperature=0.7
     )
@@ -277,10 +275,10 @@ if vista == "👨‍🍳 Vista Cocina / Operación" and not st.session_state["co
         else:
             st.error("❌ Usuario o contraseña incorrectos.")
 
-    st.stop()  # Detiene la ejecución para no renderizar la vista cocina
+    st.stop()
 
 # -----------------------------------------------------------------------------
-# Botón para cerrar sesión de cocina (solo visible si ya está autenticado)
+# Botón para cerrar sesión de cocina
 # -----------------------------------------------------------------------------
 if vista == "👨‍🍳 Vista Cocina / Operación" and st.session_state["cocina_autenticado"]:
     col_logout, _ = st.columns([1, 4])
@@ -351,7 +349,6 @@ if vista == "👤 Vista Cliente (Usuario)":
     with col_chat:
         st.subheader("💬 Chat con Sofía")
 
-        # --- Estado de pedidos del cliente ---
         pedidos_cliente = list(st.session_state["pedidos"].values())
         if pedidos_cliente:
             st.markdown("### 📦 Estado de tus pedidos")
@@ -370,7 +367,6 @@ if vista == "👤 Vista Cliente (Usuario)":
 
         st.divider()
 
-        # --- Chat ---
         chat_key = "chat_cliente"
         if chat_key not in st.session_state:
             st.session_state[chat_key] = [
@@ -432,7 +428,6 @@ elif vista == "👨‍🍳 Vista Cocina / Operación" and st.session_state["coci
     if not pedidos:
         st.info("⏳ No hay pedidos pendientes. Esperando nuevas órdenes del cliente...")
     else:
-        # Métricas rápidas
         col_m1, col_m2, col_m3, col_m4 = st.columns(4)
         col_m1.metric("📥 Recibidos", sum(1 for p in pedidos.values() if p["estado"] == "recibido"))
         col_m2.metric("🔥 En preparación", sum(1 for p in pedidos.values() if p["estado"] == "en_preparacion"))
@@ -463,7 +458,6 @@ elif vista == "👨‍🍳 Vista Cocina / Operación" and st.session_state["coci
                     unsafe_allow_html=True
                 )
 
-                # Botones según estado
                 c1, c2, c3, c4, c5 = st.columns(5)
 
                 if c1.button("🔥 Preparando", key=f"prep_{pid}", disabled=(p["estado"] != "recibido")):
@@ -474,7 +468,6 @@ elif vista == "👨‍🍳 Vista Cocina / Operación" and st.session_state["coci
                     cambiar_estado(pid, "listo")
                     st.rerun()
 
-                # Botón especial según tipo
                 if p["tipo"] == "mesa":
                     if c3.button("🍽️ Entregado en mesa", key=f"ent_{pid}", disabled=(p["estado"] != "listo")):
                         cambiar_estado(pid, "entregado")
