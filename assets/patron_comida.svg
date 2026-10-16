@@ -1,0 +1,155 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="600" viewBox="0 0 600 600">
+  <g fill="none" stroke="#B34A25" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Círculo - plato/naranja -->
+    <circle cx="60" cy="60" r="22"/>
+    <circle cx="60" cy="60" r="14"/>
+    <!-- Taza de café -->
+    <path d="M140 50 h30 v22 a15 15 0 0 1 -30 0 z"/>
+    <path d="M170 56 q10 4 0 14"/>
+    <path d="M146 44 q3 -6 0 -12 M156 44 q3 -6 0 -12 M166 44 q3 -6 0 -12"/>
+    <!-- Copa de vino -->
+    <path d="M240 38 q0 20 10 24 q10 -4 10 -24 z"/>
+    <line x1="250" y1="62" x2="250" y2="78"/>
+    <line x1="242" y1="78" x2="258" y2="78"/>
+    <!-- Hamburguesa -->
+    <path d="M320 40 q25 -12 50 0 z"/>
+    <line x1="320" y1="48" x2="370" y2="48"/>
+    <path d="M320 54 q25 8 50 0"/>
+    <path d="M320 62 q25 -6 50 0 z"/>
+    <!-- Cuchillo y tenedor -->
+    <line x1="410" y1="34" x2="410" y2="80"/>
+    <path d="M420 34 v12 h6 v-12 M420 46 v34"/>
+    <!-- Pizza -->
+    <path d="M490 34 l20 40 h-40 z"/>
+    <circle cx="495" cy="55" r="2"/>
+    <circle cx="485" cy="60" r="2"/>
+    <circle cx="500" cy="62" r="2"/>
+    
+    <!-- Sushi -->
+    <ellipse cx="60" cy="140" rx="22" ry="14"/>
+    <ellipse cx="60" cy="140" rx="14" ry="8"/>
+    <!-- Vaso de bebida -->
+    <path d="M120 120 l-6 44 h32 l-6 -44 z"/>
+    <line x1="118" y1="132" x2="152" y2="132"/>
+    <line x1="140" y1="112" x2="150" y2="100"/>
+    <!-- Tenedor solo -->
+    <line x1="200" y1="120" x2="200" y2="164"/>
+    <path d="M194 120 v10 h12 v-10"/>
+    <!-- Donut -->
+    <circle cx="280" cy="142" r="20"/>
+    <circle cx="280" cy="142" r="7"/>
+    <path d="M266 130 q4 4 0 8"/>
+    <!-- Helado de cono -->
+    <path d="M340 122 l12 40 l12 -40 z"/>
+    <circle cx="352" cy="118" r="14"/>
+    <!-- Ensalada -->
+    <path d="M400 130 q25 -14 50 0 q-25 22 -50 0 z"/>
+    <!-- Pan -->
+    <path d="M480 138 q0 -20 30 -20 q30 0 30 20 q0 8 -8 8 h-44 q-8 0 -8 -8 z"/>
+    <line x1="490" y1="140" x2="490" y2="146"/>
+    <line x1="505" y1="140" x2="505" y2="146"/>
+    <line x1="520" y1="140" x2="520" y2="146"/>
+    
+    <!-- Manzana -->
+    <circle cx="60" cy="230" r="18"/>
+    <path d="M60 212 q4 -8 10 -10"/>
+    <path d="M54 216 q-4 -6 -10 -6 q0 6 6 8"/>
+    <!-- Queso -->
+    <path d="M130 220 l40 0 l0 24 l-40 0 z"/>
+    <path d="M130 220 l20 -12 l40 0 l-20 12"/>
+    <circle cx="145" cy="232" r="2"/>
+    <circle cx="160" cy="234" r="2"/>
+    <!-- Pez -->
+    <path d="M210 232 q25 -16 50 0 q-25 16 -50 0 z"/>
+    <path d="M210 232 l-10 -8 l0 16 z"/>
+    <circle cx="245" cy="228" r="1.5"/>
+    <!-- Zanahoria -->
+    <path d="M290 218 l20 40 l-20 -6 z"/>
+    <path d="M290 218 q-2 -8 4 -10 M296 218 q2 -8 8 -8"/>
+    <!-- Taza grande -->
+    <path d="M360 218 q0 32 24 32 q24 0 24 -32 z"/>
+    <path d="M408 226 q14 4 0 16"/>
+    <!-- Cuchara -->
+    <ellipse cx="470" cy="224" rx="8" ry="12"/>
+    <line x1="470" y1="236" x2="470" y2="258"/>
+    <!-- Plato con tapa -->
+    <circle cx="530" cy="238" r="20"/>
+    <path d="M514 238 h32"/>
+    <circle cx="530" cy="222" r="3"/>
+    
+    <!-- Copas / botella -->
+    <path d="M60 320 q0 40 14 40 q14 0 14 -40 z"/>
+    <path d="M60 320 q14 -6 28 0"/>
+    <line x1="74" y1="324" x2="74" y2="358"/>
+    <!-- Uvas -->
+    <circle cx="150" cy="324" r="6"/>
+    <circle cx="162" cy="328" r="6"/>
+    <circle cx="156" cy="340" r="6"/>
+    <circle cx="144" cy="336" r="6"/>
+    <path d="M156 318 q0 -8 6 -10"/>
+    <!-- Setas -->
+    <path d="M220 330 q10 -16 24 0 z"/>
+    <line x1="232" y1="330" x2="232" y2="346"/>
+    <path d="M250 336 q8 -12 18 0 z"/>
+    <line x1="259" y1="336" x2="259" y2="348"/>
+    <!-- Taza de té -->
+    <ellipse cx="320" cy="340" rx="18" ry="6"/>
+    <path d="M302 340 v-12 q18 -6 36 0 v12"/>
+    <path d="M338 334 q8 2 0 8"/>
+    <!-- Fresa -->
+    <path d="M390 326 q-10 6 0 20 q10 8 20 0 q10 -14 0 -20 z"/>
+    <path d="M400 320 q0 -6 6 -8"/>
+    <!-- Pera -->
+    <path d="M470 328 q-8 -8 -8 -16 q0 -10 12 -10 q12 0 12 10 q0 8 -8 16 q-4 6 -4 12 h-4 q0 -6 -4 -12 z"/>
+    <path d="M474 302 q2 -6 6 -8"/>
+    
+    <!-- Postre / pastel -->
+    <path d="M60 420 l40 0 l0 20 l-40 0 z"/>
+    <path d="M60 420 q20 -14 40 0"/>
+    <line x1="70" y1="440" x2="70" y2="446"/>
+    <line x1="90" y1="440" x2="90" y2="446"/>
+    <!-- Cuchillo grande -->
+    <path d="M140 408 l10 42 l-6 0 l-4 -22 l-4 22 l-6 0 z"/>
+    <!-- Galletas -->
+    <circle cx="210" cy="428" r="16"/>
+    <circle cx="204" cy="424" r="1.5"/>
+    <circle cx="216" cy="430" r="1.5"/>
+    <circle cx="210" cy="434" r="1.5"/>
+    <!-- Sandía -->
+    <path d="M270 428 q0 -20 20 -20 q20 0 20 20 z"/>
+    <path d="M276 424 q14 -12 28 0"/>
+    <circle cx="284" cy="428" r="1"/>
+    <circle cx="294" cy="428" r="1"/>
+    <!-- Sartén -->
+    <ellipse cx="370" cy="430" rx="22" ry="10"/>
+    <line x1="392" y1="430" x2="410" y2="440"/>
+    <!-- Botella -->
+    <path d="M470 410 q-4 -6 0 -12 h8 q4 6 0 12 v34 q0 4 -4 4 q-4 0 -4 -4 z"/>
+    <line x1="472" y1="420" x2="480" y2="420"/>
+    
+    <!-- Baguette -->
+    <path d="M40 540 q40 -14 60 10 q-30 12 -60 -10 z"/>
+    <line x1="55" y1="536" x2="65" y2="546"/>
+    <line x1="70" y1="540" x2="80" y2="550"/>
+    <!-- Cuchillo y tenedor cruzados -->
+    <line x1="140" y1="520" x2="170" y2="560"/>
+    <path d="M138 518 v10 h6 v-10"/>
+    <line x1="170" y1="520" x2="140" y2="560"/>
+    <!-- Panqueques -->
+    <ellipse cx="240" cy="540" rx="24" ry="8"/>
+    <ellipse cx="240" cy="534" rx="22" ry="7"/>
+    <ellipse cx="240" cy="528" rx="20" ry="6"/>
+    <path d="M240 522 q4 -6 8 -6"/>
+    <!-- Huevo frito -->
+    <path d="M330 528 q-4 -12 6 -16 q10 -4 18 4 q10 -2 12 8 q2 12 -10 14 q-10 4 -18 0 q-6 -2 -8 -10 z"/>
+    <circle cx="342" cy="532" r="6"/>
+    <!-- Bol con fruta -->
+    <path d="M410 536 q30 20 60 0 z"/>
+    <circle cx="440" cy="524" r="5"/>
+    <circle cx="428" cy="528" r="4"/>
+    <circle cx="452" cy="528" r="4"/>
+    <!-- Taza con asa -->
+    <path d="M500 528 h30 v16 q0 6 -6 6 h-18 q-6 0 -6 -6 z"/>
+    <path d="M530 532 q8 4 0 12"/>
+  </g>
+</svg>
