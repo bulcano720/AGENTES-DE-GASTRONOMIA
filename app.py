@@ -14,11 +14,11 @@ from datetime import datetime
 from zoneinfo import ZoneInfo
 
 import streamlit as st
+import streamlit.components.v1 as components
 from groq import Groq
 
 # ==============================================================================
 # CONFIGURACIÓN DE PÁGINA Y ESTILO
-# (colores base y fondo vienen de .streamlit/config.toml; aquí solo el detalle)
 # ==============================================================================
 NOMBRE_REST = "Sabor Digital"
 
@@ -132,15 +132,14 @@ MODELO = "openai/gpt-oss-120b"
 INTEGRANTES = "Daniel Andres Jara Olivera | Daniel Felipe Escobar Ramirez | Diana Carolina León Ocampo | Michel Harold Silva Romero"
 DOCENTE = "Ricardo Alberto Jimenez"
 
-# Límites anti-abuso
-MAX_PEDIDOS_ACTIVOS = 3      # pedidos sin entregar por sesión de cliente
-VENTANA_DUPLICADO_S = 60     # segundos para considerar un pedido idéntico como duplicado
-MAX_MENSAJES_CONTEXTO = 12   # mensajes del chat que se envían al modelo
+MAX_PEDIDOS_ACTIVOS = 3
+VENTANA_DUPLICADO_S = 60
+MAX_MENSAJES_CONTEXTO = 12
 MAX_INTENTOS_LOGIN = 5
 
 
 # ==============================================================================
-# 🔐 SECRETOS Y CREDENCIALES (nada sensible va en el código)
+# 🔐 SECRETOS Y CREDENCIALES
 # ==============================================================================
 def _secret(nombre):
     try:
@@ -150,9 +149,8 @@ def _secret(nombre):
 
 
 COCINA_USER = _secret("COCINA_USER") or "cocina"
-COCINA_PASS = _secret("COCINA_PASS") or "cocina123"  # si existe el secreto COCINA_PASS, ese tiene prioridad
+COCINA_PASS = _secret("COCINA_PASS") or "cocina123"
 
-# URL pública de la app (para el QR del menú). Se puede cambiar con el secreto APP_URL.
 APP_URL = (_secret("APP_URL") or "https://agentes-de-gastronomia-gxnkbxhu49jfw359zy4j6t.streamlit.app").rstrip("/")
 MENU_URL = f"{APP_URL}/?menu=1"
 
@@ -172,8 +170,10 @@ def credenciales_ok(usuario, contrasena):
 
 for k, v in (("cocina_autenticado", False), ("mis_pedidos", []), ("carrito", []),
              ("intentos_login", 0), ("sofia_pendiente", False),
-             ("confirmar_del", None), ("reporte_ia", None)):
+             ("confirmar_del", None), ("reporte_ia", None),
+             ("vista_cliente", "🍽️ Ver menú y pedir")):
     st.session_state.setdefault(k, v)
+
 
 # ==============================================================================
 # 📋 MENÚ DEL RESTAURANTE
@@ -214,7 +214,6 @@ def norm(s):
 
 
 def cop(n):
-    """Formato de pesos colombianos: $12.000"""
     return "$" + f"{int(n):,}".replace(",", ".")
 
 
@@ -229,7 +228,7 @@ def precio_plato(categoria, plato):
 
 
 # ==============================================================================
-# 🛡️ AGENTE DE ALERGIAS (determinista, sin LLM)
+# 🛡️ AGENTE DE ALERGIAS
 # ==============================================================================
 def revisar_alergias(items, alergias):
     avisos = []
@@ -245,7 +244,7 @@ def revisar_alergias(items, alergias):
 
 
 # ==============================================================================
-# 🗂️ PERSISTENCIA (SQLite): los pedidos sobreviven a reinicios de la app
+# 🗂️ PERSISTENCIA (SQLite)
 # ==============================================================================
 DB_PATH = _secret("DB_PATH") or "pedidos.db"
 
@@ -265,7 +264,6 @@ def get_db():
     try:
         conn = _abrir_db(DB_PATH)
     except sqlite3.Error:
-        # Si el disco es de solo lectura, se trabaja en memoria (sin persistencia)
         conn = _abrir_db(":memory:")
     return {"conn": conn, "lock": threading.Lock()}
 
@@ -274,7 +272,6 @@ DB = get_db()
 
 
 def normalizar_items(items):
-    """Valida contra el menú, junta platos repetidos y descarta agotados."""
     agotados = get_agotados()
     acumulado = {}
     for it in items or []:
@@ -299,7 +296,6 @@ def normalizar_items(items):
 
 
 def normalizar_telefono(t):
-    """Celular colombiano de 10 dígitos (acepta prefijo 57)."""
     d = "".join(c for c in str(t or "") if c.isdigit())
     if len(d) == 12 and d.startswith("57"):
         d = d[2:]
@@ -307,7 +303,6 @@ def normalizar_telefono(t):
 
 
 def estimar_tiempo_cocina(items):
-    """La cocina trabaja en paralelo: el plato más lento manda y el resto suma un 30 %."""
     tiempos = [MENU[i["categoria"]][i["plato"]]["tiempo"] * (1 + 0.3 * (i["cantidad"] - 1)) for i in items]
     mayor = max(tiempos)
     return math.ceil(mayor + 0.3 * (sum(tiempos) - mayor))
@@ -337,7 +332,6 @@ def crear_pedido(tipo_entrega, mesa=None, direccion=None, telefono=None,
     else:
         raise ValueError("Tipo de entrega inválido (mesa o domicilio).")
 
-    # --- Anti-spam: límite de pedidos activos y detección de duplicados ---
     ahora = time.time()
     firma = json.dumps([tipo_entrega, (mesa or direccion).lower(),
                         sorted((i["plato"], i["cantidad"]) for i in items)], ensure_ascii=False)
@@ -426,7 +420,389 @@ def items_txt(p):
 
 
 # ==============================================================================
-# 🤖 AGENTE SOFÍA (Groq con herramienta crear_pedido)
+# 🎮 JUEGOS PARA LA ESPERA
+# ==============================================================================
+def juego_flappy():
+    components.html("""
+    <!DOCTYPE html><html><head><style>
+        body { margin: 0; background: #FFF8EE; font-family: Georgia, serif; }
+        canvas { display: block; margin: 0 auto; background: #FFE4B5;
+                 border: 2px solid #B34A25; border-radius: 8px;
+                 touch-action: manipulation; }
+        #info { text-align: center; color: #3E2C23; font-size: 16px; margin-top: 8px; }
+        #info b { color: #B34A25; }
+    </style></head><body>
+    <canvas id="game" width="400" height="500"></canvas>
+    <div id="info">Puntos: <b id="score">0</b> · Récord: <b id="best">0</b> · <span id="msg">Toca o presiona ESPACIO para saltar</span></div>
+    <script>
+        const c = document.getElementById('game');
+        const ctx = c.getContext('2d');
+        const scoreEl = document.getElementById('score');
+        const bestEl = document.getElementById('best');
+        const msgEl = document.getElementById('msg');
+
+        const GRAVEDAD = 0.45;
+        const IMPULSO = -7.2;
+        const SALTO_COOLDOWN_MS = 90;  // evita saltos duplicados en el mismo frame
+
+        let bird, pipes, score, best, gameOver, frame, started;
+        let ultimoSalto = 0;
+
+        function reset() {
+            bird = { x: 80, y: 250, v: 0, r: 15 };
+            pipes = []; score = 0; gameOver = false; frame = 0; started = false;
+            ultimoSalto = 0;
+            scoreEl.textContent = 0;
+            msgEl.textContent = 'Toca o presiona ESPACIO para saltar';
+        }
+        best = parseInt(localStorage.getItem('flappy_best') || '0');
+        bestEl.textContent = best;
+        reset();
+
+        function jump() {
+            const ahora = performance.now();
+            if (gameOver) { reset(); return; }
+            // Cooldown: ignora saltos demasiado seguidos
+            if (ahora - ultimoSalto < SALTO_COOLDOWN_MS) return;
+            ultimoSalto = ahora;
+            if (!started) started = true;
+            bird.v = IMPULSO;   // aplica SIEMPRE el impulso completo
+        }
+
+        document.addEventListener('keydown', e => {
+            if (e.code === 'Space' || e.code === 'ArrowUp') {
+                e.preventDefault();
+                if (!e.repeat) jump();   // ignora auto-repeat del teclado
+            }
+        });
+        document.addEventListener('keyup', e => {
+            // opcional: nada, ya ignoramos el auto-repeat
+        });
+
+        // Click y touch con preventDefault para evitar scroll en móvil
+        c.addEventListener('mousedown', e => { e.preventDefault(); jump(); });
+        c.addEventListener('touchstart', e => { e.preventDefault(); jump(); }, { passive: false });
+
+        function loop() {
+            ctx.clearRect(0, 0, c.width, c.height);
+            ctx.fillStyle = '#FFE4B5'; ctx.fillRect(0, 0, c.width, c.height);
+            ctx.fillStyle = '#E3CDB0'; ctx.fillRect(0, c.height - 40, c.width, 40);
+
+            if (started && !gameOver) {
+                bird.v += GRAVEDAD;
+                bird.y += bird.v;
+
+                if (frame % 90 === 0) {
+                    const gap = 140;
+                    const topH = 60 + Math.random() * (c.height - 40 - gap - 120);
+                    pipes.push({ x: c.width, topH: topH, gap: gap, w: 60 });
+                }
+                pipes.forEach(p => p.x -= 2.5);
+                pipes = pipes.filter(p => p.x + p.w > 0);
+
+                for (const p of pipes) {
+                    if (bird.x + bird.r > p.x && bird.x - bird.r < p.x + p.w) {
+                        if (bird.y - bird.r < p.topH || bird.y + bird.r > p.topH + p.gap) {
+                            gameOver = true;
+                            if (score > best) { best = score; bestEl.textContent = best; localStorage.setItem('flappy_best', best); }
+                            msgEl.textContent = '💥 ¡Chocaste! Toca para reiniciar';
+                        }
+                    }
+                }
+                if (bird.y + bird.r > c.height - 40 || bird.y - bird.r < 0) {
+                    gameOver = true;
+                    if (score > best) { best = score; bestEl.textContent = best; localStorage.setItem('flappy_best', best); }
+                    msgEl.textContent = '💥 ¡Chocaste! Toca para reiniciar';
+                }
+                for (const p of pipes) {
+                    if (!p.passed && p.x + p.w < bird.x) { p.passed = true; score++; scoreEl.textContent = score; }
+                }
+                frame++;
+            }
+
+            pipes.forEach(p => {
+                ctx.fillStyle = '#5E7B3A';
+                ctx.fillRect(p.x, 0, p.w, p.topH);
+                ctx.fillRect(p.x, p.topH + p.gap, p.w, c.height - p.topH - p.gap);
+                ctx.strokeStyle = '#3E2C23'; ctx.lineWidth = 2;
+                ctx.strokeRect(p.x, 0, p.w, p.topH);
+                ctx.strokeRect(p.x, p.topH + p.gap, p.w, c.height - p.topH - p.gap);
+            });
+
+            ctx.beginPath(); ctx.arc(bird.x, bird.y, bird.r, 0, Math.PI * 2);
+            ctx.fillStyle = '#F2B84B'; ctx.fill();
+            ctx.strokeStyle = '#B34A25'; ctx.lineWidth = 2; ctx.stroke();
+            ctx.beginPath(); ctx.arc(bird.x + 5, bird.y - 4, 3, 0, Math.PI * 2);
+            ctx.fillStyle = '#3E2C23'; ctx.fill();
+
+            requestAnimationFrame(loop);
+        }
+        loop();
+    </script></body></html>
+    """, height=580)
+
+
+def juego_tetris():
+    components.html("""
+    <!DOCTYPE html><html><head><style>
+        body { margin: 0; background: #FFF8EE; font-family: Georgia, serif; }
+        #wrap { display: flex; justify-content: center; gap: 20px; padding: 10px; }
+        canvas { background: #FFE4B5; border: 2px solid #B34A25; border-radius: 8px; }
+        #info { color: #3E2C23; font-size: 15px; }
+        #info b { color: #B34A25; }
+        .key { display: inline-block; padding: 2px 8px; background: #F6E7D2;
+               border: 1px solid #E3CDB0; border-radius: 4px; font-family: monospace; }
+    </style></head><body>
+    <div id="wrap">
+        <canvas id="board" width="240" height="480"></canvas>
+        <div id="info">
+            <p><b>Puntos:</b> <span id="score">0</span></p>
+            <p><b>Líneas:</b> <span id="lines">0</span></p>
+            <p><b>Récord:</b> <span id="best">0</span></p>
+            <hr>
+            <p><span class="key">←</span> <span class="key">→</span> mover</p>
+            <p><span class="key">↓</span> bajar</p>
+            <p><span class="key">↑</span> rotar</p>
+            <p><span class="key">Espacio</span> caída rápida</p>
+        </div>
+    </div>
+    <script>
+        const canvas = document.getElementById('board');
+        const ctx = canvas.getContext('2d');
+        const COLS = 10, ROWS = 20, SIZE = 24;
+        const scoreEl = document.getElementById('score');
+        const linesEl = document.getElementById('lines');
+        const bestEl = document.getElementById('best');
+        const PIECES = {
+            I: { color: '#5E7B3A', shape: [[1,1,1,1]] },
+            O: { color: '#F2B84B', shape: [[1,1],[1,1]] },
+            T: { color: '#B34A25', shape: [[0,1,0],[1,1,1]] },
+            S: { color: '#3F6C8C', shape: [[0,1,1],[1,1,0]] },
+            Z: { color: '#963C1B', shape: [[1,1,0],[0,1,1]] },
+            J: { color: '#7A6655', shape: [[1,0,0],[1,1,1]] },
+            L: { color: '#6B6259', shape: [[0,0,1],[1,1,1]] },
+        };
+        let board, piece, pos, score, lines, best, dropCounter, dropInterval, gameOver;
+        let currentColor = '#B34A25';
+        best = parseInt(localStorage.getItem('tetris_best') || '0');
+        bestEl.textContent = best;
+        function reset() {
+            board = Array.from({length: ROWS}, () => Array(COLS).fill(null));
+            score = 0; lines = 0; gameOver = false;
+            dropCounter = 0; dropInterval = 700;
+            scoreEl.textContent = 0; linesEl.textContent = 0;
+            nuevaPiezaConColor();
+        }
+        function nuevaPiezaConColor() {
+            const keys = Object.keys(PIECES);
+            const k = keys[Math.floor(Math.random() * keys.length)];
+            currentColor = PIECES[k].color;
+            piece = PIECES[k].shape.map(r => [...r]);
+            pos = { x: Math.floor((COLS - piece[0].length) / 2), y: 0 };
+            if (colision()) {
+                gameOver = true;
+                if (score > best) { best = score; bestEl.textContent = best; localStorage.setItem('tetris_best', best); }
+            }
+        }
+        function colision() {
+            for (let y = 0; y < piece.length; y++)
+                for (let x = 0; x < piece[y].length; x++)
+                    if (piece[y][x]) {
+                        const nx = pos.x + x, ny = pos.y + y;
+                        if (nx < 0 || nx >= COLS || ny >= ROWS) return true;
+                        if (ny >= 0 && board[ny][nx]) return true;
+                    }
+            return false;
+        }
+        function merge() {
+            piece.forEach((row, y) => row.forEach((v, x) => {
+                if (v && pos.y + y >= 0) board[pos.y + y][pos.x + x] = currentColor;
+            }));
+        }
+        function limpiarLineas() {
+            let cleared = 0;
+            for (let y = ROWS - 1; y >= 0; y--) {
+                if (board[y].every(c => c)) {
+                    board.splice(y, 1);
+                    board.unshift(Array(COLS).fill(null));
+                    cleared++; y++;
+                }
+            }
+            if (cleared) {
+                lines += cleared;
+                score += [0, 40, 100, 300, 1200][cleared];
+                scoreEl.textContent = score; linesEl.textContent = lines;
+                dropInterval = Math.max(120, 700 - lines * 15);
+            }
+        }
+        function rotate() {
+            const N = piece.length, M = piece[0].length;
+            const rot = Array.from({length: M}, () => Array(N).fill(0));
+            for (let y = 0; y < N; y++)
+                for (let x = 0; x < M; x++)
+                    rot[x][N - 1 - y] = piece[y][x];
+            const backup = piece; piece = rot;
+            if (colision()) piece = backup;
+        }
+        function drop() {
+            pos.y++;
+            if (colision()) {
+                pos.y--; merge(); limpiarLineas(); nuevaPiezaConColor();
+            }
+            dropCounter = 0;
+        }
+        function hardDrop() { while (!colision()) pos.y++; pos.y--; drop(); }
+        document.addEventListener('keydown', e => {
+            if (gameOver && e.code === 'Space') { reset(); return; }
+            if (e.code === 'ArrowLeft') { pos.x--; if (colision()) pos.x++; }
+            else if (e.code === 'ArrowRight') { pos.x++; if (colision()) pos.x--; }
+            else if (e.code === 'ArrowDown') { drop(); }
+            else if (e.code === 'ArrowUp') { rotate(); }
+            else if (e.code === 'Space') { e.preventDefault(); hardDrop(); }
+        });
+        let lastTime = 0;
+        function update(time = 0) {
+            const delta = time - lastTime; lastTime = time;
+            if (!gameOver) { dropCounter += delta; if (dropCounter > dropInterval) drop(); }
+            draw(); requestAnimationFrame(update);
+        }
+        function draw() {
+            ctx.fillStyle = '#FFE4B5'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.strokeStyle = 'rgba(179,74,37,0.15)';
+            for (let x = 0; x <= COLS; x++) { ctx.beginPath(); ctx.moveTo(x*SIZE,0); ctx.lineTo(x*SIZE,ROWS*SIZE); ctx.stroke(); }
+            for (let y = 0; y <= ROWS; y++) { ctx.beginPath(); ctx.moveTo(0,y*SIZE); ctx.lineTo(COLS*SIZE,y*SIZE); ctx.stroke(); }
+            board.forEach((row, y) => row.forEach((c, x) => {
+                if (c) { ctx.fillStyle = c; ctx.fillRect(x*SIZE,y*SIZE,SIZE-1,SIZE-1); ctx.strokeStyle='#3E2C23'; ctx.strokeRect(x*SIZE,y*SIZE,SIZE-1,SIZE-1); }
+            }));
+            piece.forEach((row, y) => row.forEach((v, x) => {
+                if (v && pos.y + y >= 0) {
+                    ctx.fillStyle = currentColor;
+                    ctx.fillRect((pos.x+x)*SIZE,(pos.y+y)*SIZE,SIZE-1,SIZE-1);
+                    ctx.strokeStyle = '#3E2C23';
+                    ctx.strokeRect((pos.x+x)*SIZE,(pos.y+y)*SIZE,SIZE-1,SIZE-1);
+                }
+            }));
+            if (gameOver) {
+                ctx.fillStyle = 'rgba(62,44,35,0.75)'; ctx.fillRect(0,200,canvas.width,80);
+                ctx.fillStyle = '#FFF8EE'; ctx.font = 'bold 22px Georgia'; ctx.textAlign = 'center';
+                ctx.fillText('GAME OVER', canvas.width/2, 235);
+                ctx.font = '14px Georgia'; ctx.fillText('Presiona ESPACIO para reiniciar', canvas.width/2, 260);
+            }
+        }
+        reset(); update();
+    </script></body></html>
+    """, height=520)
+
+
+def juego_carreritas():
+    components.html("""
+    <!DOCTYPE html><html><head><style>
+        body { margin: 0; background: #FFF8EE; font-family: Georgia, serif; }
+        canvas { display: block; margin: 0 auto; background: #4A5568;
+                 border: 2px solid #B34A25; border-radius: 8px; }
+        #info { text-align: center; color: #3E2C23; margin-top: 8px; font-size: 15px; }
+        #info b { color: #B34A25; }
+    </style></head><body>
+    <canvas id="game" width="360" height="520"></canvas>
+    <div id="info">Puntos: <b id="score">0</b> · Récord: <b id="best">0</b> · <span id="msg">Usa ← → para moverte</span></div>
+    <script>
+        const c = document.getElementById('game');
+        const ctx = c.getContext('2d');
+        const scoreEl = document.getElementById('score');
+        const bestEl = document.getElementById('best');
+        const msgEl = document.getElementById('msg');
+        const ROAD_LEFT = 40, ROAD_RIGHT = 320;
+        const LANES = 3;
+        const LANE_W = (ROAD_RIGHT - ROAD_LEFT) / LANES;
+        let car, obstacles, score, best, gameOver, frame, speed, started;
+        best = parseInt(localStorage.getItem('race_best') || '0');
+        bestEl.textContent = best;
+        function reset() {
+            car = { x: (ROAD_LEFT + ROAD_RIGHT)/2 - 18, y: c.height - 90, w: 36, h: 60, lane: 1 };
+            obstacles = []; score = 0; frame = 0; speed = 3; gameOver = false; started = false;
+            scoreEl.textContent = 0; msgEl.textContent = 'Usa ← → para moverte';
+        }
+        reset();
+        function moveLane(dir) {
+            if (gameOver) { reset(); return; }
+            started = true;
+            car.lane = Math.max(0, Math.min(LANES - 1, car.lane + dir));
+            car.x = ROAD_LEFT + car.lane * LANE_W + LANE_W/2 - car.w/2;
+        }
+        document.addEventListener('keydown', e => {
+            if (e.code === 'ArrowLeft') { e.preventDefault(); moveLane(-1); }
+            if (e.code === 'ArrowRight') { e.preventDefault(); moveLane(1); }
+        });
+        c.addEventListener('click', e => {
+            const rect = c.getBoundingClientRect();
+            const clickX = e.clientX - rect.left;
+            moveLane(clickX < car.x + car.w/2 ? -1 : 1);
+        });
+        function loop() {
+            ctx.fillStyle = '#FFF8EE'; ctx.fillRect(0, 0, c.width, c.height);
+            ctx.fillStyle = '#5E7B3A';
+            ctx.fillRect(0, 0, ROAD_LEFT, c.height);
+            ctx.fillRect(ROAD_RIGHT, 0, c.width - ROAD_RIGHT, c.height);
+            ctx.fillStyle = '#4A5568';
+            ctx.fillRect(ROAD_LEFT, 0, ROAD_RIGHT - ROAD_LEFT, c.height);
+            ctx.strokeStyle = '#F2B84B'; ctx.lineWidth = 3;
+            ctx.setLineDash([20, 20]);
+            ctx.lineDashOffset = -(frame * speed) % 40;
+            for (let i = 1; i < LANES; i++) {
+                const x = ROAD_LEFT + i * LANE_W;
+                ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, c.height); ctx.stroke();
+            }
+            ctx.setLineDash([]);
+            ctx.strokeStyle = '#B34A25'; ctx.lineWidth = 4;
+            ctx.beginPath();
+            ctx.moveTo(ROAD_LEFT, 0); ctx.lineTo(ROAD_LEFT, c.height);
+            ctx.moveTo(ROAD_RIGHT, 0); ctx.lineTo(ROAD_RIGHT, c.height);
+            ctx.stroke();
+            if (started && !gameOver) {
+                if (frame % 45 === 0) {
+                    const lane = Math.floor(Math.random() * LANES);
+                    const x = ROAD_LEFT + lane * LANE_W + LANE_W/2 - 18;
+                    const colors = ['#B34A25', '#3F6C8C', '#7A6655', '#963C1B'];
+                    obstacles.push({ x: x, y: -70, w: 36, h: 60, color: colors[Math.floor(Math.random()*colors.length)] });
+                }
+                obstacles.forEach(o => o.y += speed);
+                obstacles = obstacles.filter(o => o.y < c.height + 80);
+                for (const o of obstacles) {
+                    if (car.x < o.x + o.w && car.x + car.w > o.x &&
+                        car.y < o.y + o.h && car.y + car.h > o.y) {
+                        gameOver = true;
+                        if (score > best) { best = score; bestEl.textContent = best; localStorage.setItem('race_best', best); }
+                        msgEl.textContent = '💥 ¡Chocaste! Toca para reiniciar';
+                        break;
+                    }
+                }
+                if (frame % 15 === 0) {
+                    score++; scoreEl.textContent = score;
+                    speed = 3 + Math.min(4, Math.floor(score / 20));
+                }
+                frame++;
+            }
+            obstacles.forEach(o => {
+                ctx.fillStyle = o.color; ctx.fillRect(o.x, o.y, o.w, o.h);
+                ctx.strokeStyle = '#3E2C23'; ctx.lineWidth = 2; ctx.strokeRect(o.x, o.y, o.w, o.h);
+                ctx.fillStyle = '#FFF8EE';
+                ctx.fillRect(o.x + 6, o.y + 10, 8, 10);
+                ctx.fillRect(o.x + 22, o.y + 10, 8, 10);
+            });
+            ctx.fillStyle = '#F2B84B'; ctx.fillRect(car.x, car.y, car.w, car.h);
+            ctx.strokeStyle = '#B34A25'; ctx.lineWidth = 2; ctx.strokeRect(car.x, car.y, car.w, car.h);
+            ctx.fillStyle = '#3E2C23';
+            ctx.fillRect(car.x + 6, car.y + 10, car.w - 12, 12);
+            ctx.fillRect(car.x + 6, car.y + car.h - 20, car.w - 12, 10);
+            requestAnimationFrame(loop);
+        }
+        loop();
+    </script></body></html>
+    """, height=600)
+
+
+# ==============================================================================
+# 🤖 AGENTE SOFÍA
 # ==============================================================================
 PROMPT_CLIENTE = (
     f"Eres Sofía, la asistente IA del restaurante '{NOMBRE_REST}'. Eres cálida, "
@@ -542,7 +918,7 @@ def sofia_responder(historial):
         r = client.chat.completions.create(
             messages=mensajes, model=MODELO, max_tokens=1500, temperature=0.3,
             tools=TOOLS, tool_choice="auto",
-            extra_body={"reasoning_effort": "low"},  # evita gastar los tokens en razonar
+            extra_body={"reasoning_effort": "low"},
         )
         msg = r.choices[0].message
         if not msg.tool_calls:
@@ -568,7 +944,6 @@ def sofia_responder(historial):
 
 # ------------------------- 📊 AGENTE DE REPORTES -------------------------
 def resumen_ventas(pedidos):
-    """Métricas deterministas de los pedidos recibidos (lista ya filtrada por fecha)."""
     platos = Counter()
     for p in pedidos:
         for i in p["items"]:
@@ -604,11 +979,10 @@ def reporte_ia(resumen):
 
 
 # ==============================================================================
-# 📱 CÓDIGO QR DEL MENÚ + MENÚ PÚBLICO (para verlo desde el celular)
+# 📱 CÓDIGO QR DEL MENÚ + MENÚ PÚBLICO
 # ==============================================================================
 @st.cache_data(show_spinner=False)
 def generar_qr_png(url):
-    """Devuelve el QR como bytes PNG, o None si la librería 'segno' no está instalada."""
     try:
         import segno
     except ImportError:
@@ -620,7 +994,6 @@ def generar_qr_png(url):
 
 
 def mostrar_qr(clave):
-    """Muestra el QR del menú, el enlace y el botón de descarga."""
     png = generar_qr_png(MENU_URL)
     if png is None:
         st.warning("No se pudo generar el QR (falta la librería 'segno' en requirements.txt). "
@@ -634,7 +1007,6 @@ def mostrar_qr(clave):
 
 
 def menu_publico():
-    """Vista de solo lectura del menú, pensada para celulares (se abre con ?menu=1)."""
     st.markdown(f"""
     <div class="header-box">
         <div class="header-title">🍽️ {esc(NOMBRE_REST)} — Menú</div>
@@ -737,6 +1109,37 @@ def panel_estado_cliente():
 
 if vista == "👤 Vista Cliente (Usuario)":
 
+    subvista = st.radio(
+        "🧭 ¿Qué quieres hacer?",
+        ["🍽️ Ver menú y pedir", "🎮 Jugar mientras espero"],
+        horizontal=True,
+        key="vista_cliente"
+    )
+    st.divider()
+
+    if subvista == "🎮 Jugar mientras espero":
+        st.subheader("🎮 Entretente mientras preparamos tu pedido")
+        st.caption("Tus pedidos siguen avanzando en cocina mientras juegas. Los récords se guardan en tu navegador.")
+
+        juego_sel = st.radio(
+            "Elige un juego:",
+            ["🐦 Pajarito Feliz", "🧱 Tetris Express", "🏎️ Carreritas"],
+            horizontal=True,
+            key="juego_sel"
+        )
+
+        if juego_sel == "🐦 Pajarito Feliz":
+            st.markdown("**Instrucciones:** toca la pantalla o presiona **ESPACIO** para hacer saltar al pajarito y esquivar los tubos.")
+            juego_flappy()
+        elif juego_sel == "🧱 Tetris Express":
+            st.markdown("**Instrucciones:** usa las flechas **← →** para mover, **↓** para bajar, **↑** para rotar y **ESPACIO** para caída rápida.")
+            juego_tetris()
+        else:
+            st.markdown("**Instrucciones:** usa **← →** o toca a los lados del carro para cambiar de carril y esquivar los obstáculos.")
+            juego_carreritas()
+
+        st.stop()
+
     col_menu, col_chat = st.columns([1.2, 1])
     agotados = get_agotados()
 
@@ -761,7 +1164,6 @@ if vista == "👤 Vista Cliente (Usuario)":
         st.divider()
         st.subheader("🛒 Hacer Pedido Rápido")
 
-        # Estos selectores van FUERA del form para que los campos dependientes se actualicen al instante.
         tipo = st.selectbox("Tipo de entrega:", ["mesa", "domicilio"])
         categoria_sel = st.selectbox("Categoría:", list(MENU.keys()))
         opciones = [p for p in MENU[categoria_sel] if p not in agotados]
@@ -842,7 +1244,6 @@ if vista == "👤 Vista Cliente (Usuario)":
             for msg in st.session_state[chat_key]:
                 st.chat_message(msg["role"]).write(msg["content"])
 
-            # Sofía responde DESPUÉS de mostrar el mensaje del usuario
             if st.session_state["sofia_pendiente"]:
                 with st.chat_message("assistant"):
                     with st.spinner("Sofía está pensando..."):
@@ -960,7 +1361,6 @@ def panel_cocina():
     entregados = sorted((p for p in pedidos if p["estado"] == "entregado"),
                         key=lambda p: p["ts"], reverse=True)
 
-    # Agente de cocina: sugiere qué preparar primero (el pedido recibido más antiguo)
     recibidos = [p for p in activos if p["estado"] == "recibido"]
     if recibidos:
         sig = min(recibidos, key=lambda p: p["ts"])
@@ -982,11 +1382,9 @@ if vista == "👨‍🍳 Vista Cocina / Operación" and st.session_state["cocina
     st.caption("Los pedidos de todos los clientes llegan aquí y el panel se actualiza solo cada 5 s.")
     panel_cocina()
 
-    # --------------------------- 📱 QR DEL MENÚ ---------------------------
     with st.expander("📱 Código QR del menú (para imprimir y poner en las mesas)"):
         mostrar_qr("cocina")
 
-    # --------------------------- 📦 INVENTARIO ---------------------------
     with st.expander("📦 Inventario: marcar platos agotados"):
         todos_platos = [p for _, p in PLATOS.values()]
         actuales = sorted(get_agotados())
@@ -996,7 +1394,6 @@ if vista == "👨‍🍳 Vista Cocina / Operación" and st.session_state["cocina
             st.rerun()
         st.caption("Los platos agotados desaparecen del menú y Sofía no los ofrece ni los registra.")
 
-    # --------------------------- 📊 REPORTE DEL DÍA ---------------------------
     with st.expander("📊 Reporte del día"):
         hoy = datetime.now(TZ).strftime("%Y-%m-%d")
         pedidos_hoy = [p for p in todos_los_pedidos() if p.get("fecha") == hoy]
