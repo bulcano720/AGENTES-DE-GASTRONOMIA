@@ -543,27 +543,44 @@ def juego_flappy():
 
 def juego_tetris():
     components.html("""
-    <!DOCTYPE html><html><head><style>
+    <!DOCTYPE html><html><head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <style>
+        * { box-sizing: border-box; }
         body { margin: 0; background: #FFF8EE; font-family: Georgia, serif; }
-        #wrap { display: flex; justify-content: center; gap: 20px; padding: 10px; flex-wrap: wrap; }
-        canvas { background: #FFE4B5; border: 2px solid #B34A25; border-radius: 8px; touch-action: none; }
+        #wrap { display: flex; justify-content: center; gap: 20px;
+                padding: 10px; flex-wrap: wrap; }
+        canvas { background: #FFE4B5; border: 2px solid #B34A25; border-radius: 8px;
+                 touch-action: none; max-width: 100%; height: auto; }
         #info { color: #3E2C23; font-size: 15px; }
         #info b { color: #B34A25; }
         .key { display: inline-block; padding: 2px 8px; background: #F6E7D2;
                border: 1px solid #E3CDB0; border-radius: 4px; font-family: monospace; }
         #controles { display: flex; justify-content: center; gap: 10px;
-                     margin-top: 14px; flex-wrap: wrap; }
+                     margin-top: 14px; flex-wrap: wrap; padding: 0 8px 8px; }
         .btn-touch {
             background: #B34A25; color: #FFFFFF; border: none;
             border-radius: 10px; padding: 16px 22px; font-size: 22px;
             font-weight: bold; cursor: pointer; user-select: none;
+            -webkit-user-select: none; -webkit-tap-highlight-color: transparent;
             min-width: 64px; min-height: 64px;
             box-shadow: 0 3px 0 #7A2E14;
             transition: transform 0.05s;
             touch-action: manipulation;
         }
         .btn-touch:active { transform: translateY(3px); box-shadow: 0 0 0 #7A2E14; }
-        #hint { text-align: center; color: #3E2C23; font-size: 13px; margin-top: 8px; opacity: 0.75; }
+        #hint { text-align: center; color: #3E2C23; font-size: 13px;
+                margin-top: 8px; opacity: 0.75; padding: 0 8px 12px; }
+
+        /* En móvil: apilar vertical y hacer canvas más pequeño */
+        @media (max-width: 520px) {
+            #wrap { flex-direction: column; align-items: center; gap: 10px; }
+            #info { font-size: 13px; text-align: center; }
+            #info p { margin: 3px 0; }
+            #info hr { display: none; }
+            .btn-touch { padding: 14px 18px; font-size: 20px;
+                         min-width: 58px; min-height: 58px; }
+        }
     </style></head><body>
     <div id="wrap">
         <canvas id="board" width="240" height="480"></canvas>
@@ -573,21 +590,20 @@ def juego_tetris():
             <p><b>Récord:</b> <span id="best">0</span></p>
             <hr>
             <p><span class="key">←</span> <span class="key">→</span> mover</p>
-            <p><span class="key">↓</span> bajar</p>
-            <p><span class="key">↑</span> rotar</p>
+            <p><span class="key">↓</span> bajar · <span class="key">↑</span> rotar</p>
             <p><span class="key">Espacio</span> caída rápida</p>
         </div>
     </div>
 
-    <!-- Controles táctiles para móvil -->
     <div id="controles">
         <button class="btn-touch" id="btn-left">◀</button>
         <button class="btn-touch" id="btn-rotate">⟳</button>
         <button class="btn-touch" id="btn-right">▶</button>
         <button class="btn-touch" id="btn-down">▼</button>
-        <button class="btn-touch" id="btn-drop" style="padding: 16px 18px; font-size: 15px;">DROP</button>
+        <button class="btn-touch" id="btn-drop"
+                style="padding: 14px 16px; font-size: 14px;">DROP</button>
     </div>
-    <div id="hint">Puedes usar las flechas del teclado o tocar los botones</div>
+    <div id="hint">Teclado o botones táctiles</div>
 
     <script>
         const canvas = document.getElementById('board');
@@ -697,32 +713,35 @@ def juego_tetris():
         function bindHold(btnId, action, repeatDelay = 180) {
             const btn = document.getElementById(btnId);
             let timer = null;
+            let active = false;
             const start = (e) => {
-                e.preventDefault();
-                if (gameOver && btnId === 'btn-drop') { reset(); return; }
+                if (e) e.preventDefault();
+                if (active) return;
+                active = true;
                 action();
                 timer = setInterval(action, repeatDelay);
             };
             const stop = (e) => {
                 if (e) e.preventDefault();
+                active = false;
                 if (timer) { clearInterval(timer); timer = null; }
             };
-            btn.addEventListener('mousedown', start);
+            // Touch (móvil) - prioridad
             btn.addEventListener('touchstart', start, { passive: false });
-            btn.addEventListener('mouseup', stop);
-            btn.addEventListener('mouseleave', stop);
             btn.addEventListener('touchend', stop);
             btn.addEventListener('touchcancel', stop);
-            // Doble clic evita zoom accidental en móviles
-            btn.addEventListener('dblclick', e => e.preventDefault());
+            // Mouse (PC)
+            btn.addEventListener('mousedown', start);
+            btn.addEventListener('mouseup', stop);
+            btn.addEventListener('mouseleave', stop);
+            btn.addEventListener('contextmenu', e => e.preventDefault());
         }
 
-        // Mantener presionado mueve repetidamente
         bindHold('btn-left', () => mover(-1));
         bindHold('btn-right', () => mover(1));
-        bindHold('btn-down', () => drop(), 80);   // bajar más rápido al mantener
+        bindHold('btn-down', () => drop(), 80);
 
-        // Estos son de un solo uso
+        // Botones de un solo uso
         document.getElementById('btn-rotate').addEventListener('click', e => {
             e.preventDefault();
             if (gameOver) { reset(); return; }
@@ -765,7 +784,7 @@ def juego_tetris():
         }
         reset(); update();
     </script></body></html>
-    """, height=720)
+    """, height=950)
 
 
 def juego_carreritas():
