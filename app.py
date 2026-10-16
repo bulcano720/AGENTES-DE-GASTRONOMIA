@@ -125,7 +125,7 @@ DOCENTE = "Ricardo Alberto Jimenez"
 
 
 # ==============================================================================
-# 🔐 SECRETOS (Groq + credenciales de cocina). Nada de claves en el código.
+# 🔐 CREDENCIALES DE ACCESO A COCINA + CLAVE DE GROQ
 # ==============================================================================
 def _secret(nombre):
     try:
@@ -134,8 +134,8 @@ def _secret(nombre):
         return os.getenv(nombre, "")
 
 
-COCINA_USER = _secret("COCINA_USER")
-COCINA_PASS = _secret("COCINA_PASS")
+COCINA_USER = "cocina"
+COCINA_PASS = "cocina123"
 
 
 @st.cache_resource
@@ -145,8 +145,6 @@ def get_client():
 
 
 def credenciales_ok(usuario, contrasena):
-    if not COCINA_USER or not COCINA_PASS:
-        return False
     return (hmac.compare_digest(usuario.encode(), COCINA_USER.encode())
             & hmac.compare_digest(contrasena.encode(), COCINA_PASS.encode()))
 
@@ -456,9 +454,6 @@ st.divider()
 
 # ----------------------- LOGIN OBLIGATORIO PARA COCINA -----------------------
 if vista == "👨‍🍳 Vista Cocina / Operación" and not st.session_state["cocina_autenticado"]:
-    if not COCINA_USER or not COCINA_PASS:
-        st.error("🔒 La vista de cocina está deshabilitada: configura COCINA_USER y COCINA_PASS en los secrets.")
-        st.stop()
     st.warning("🔒 Acceso restringido. Ingresa tus credenciales de cocina.")
     with st.form("login_cocina"):
         usuario = st.text_input("Usuario:")
