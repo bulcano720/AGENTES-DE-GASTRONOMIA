@@ -150,25 +150,35 @@ st.markdown("""
         z-index: 2;
     }
 
-        /* Forzar fondo sólido y opacidad total en TODOS los elementos del chat */
-    [data-testid="stChatMessage"],
-    [data-testid="stChatMessageContent"],
-    [data-testid="stChatInput"],
-    [data-testid="stChatInputContainer"] {
+     /* Forzar fondo sólido y opacidad total en TODOS los elementos del chat */
+    div[data-testid="stChatMessage"],
+    div[data-testid="stChatMessageContent"],
+    div[data-testid="stChatInput"],
+    div[data-testid="stChatInputContainer"],
+    div[class*="stChatMessage"] {
         background-color: #FFF8EE !important;
+        background: #FFF8EE !important;
         position: relative !important;
         z-index: 5 !important;
         border-radius: 10px !important;
     }
 
-    [data-testid="stChatMessageAvatarUser"],
-    [data-testid="stChatMessageAvatarAssistant"] {
-        z-index: 6 !important;
+    /* Forzar que el texto dentro del chat sea café oscuro legible */
+    div[data-testid="stChatMessage"] *,
+    div[data-testid="stChatMessageContent"] * {
+        color: #3E2C23 !important;
     }
 
-    section.main > div {
-        position: relative !important;
-        z-index: 3 !important;
+    /* El contenedor del chat entero debe tener fondo crema */
+    div[data-testid="stChatMessageContainer"] {
+        background-color: #FFF8EE !important;
+        background: #FFF8EE !important;
+    }
+
+    /* Avatares con z-index alto */
+    div[data-testid="stChatMessageAvatarUser"],
+    div[data-testid="stChatMessageAvatarAssistant"] {
+        z-index: 6 !important;
     }
 </style>
 """, unsafe_allow_html=True)
