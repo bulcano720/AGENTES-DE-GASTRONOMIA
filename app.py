@@ -1,6 +1,5 @@
 import hmac
 import html
-import io
 import json
 import os
 import threading
@@ -8,7 +7,6 @@ import unicodedata
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
-import segno
 import streamlit as st
 from groq import Groq
 
@@ -138,28 +136,6 @@ def _secret(nombre):
 
 COCINA_USER = "cocina"
 COCINA_PASS = "cocina123"
-
-# URL pública de la app (el QR apunta a la vista de solo menú: ?menu=1)
-APP_URL = (_secret("APP_URL") or "https://agentes-de-gastronomia-gxnkbxhu49jfw359zy4j6t.streamlit.app").rstrip("/")
-MENU_URL = f"{APP_URL}/?menu=1"
-
-
-@st.cache_data
-def qr_png(url):
-    buf = io.BytesIO()
-    segno.make(url, error="m").save(buf, kind="png", scale=8, border=4, dark="#3E2C23", light="#FFFFFF")
-    return buf.getvalue()
-
-
-def mostrar_menu(expandido=False):
-    for cat, platos in MENU.items():
-        with st.expander(f"{cat} ({len(platos)} platos)", expanded=expandido):
-            for nombre, info in platos.items():
-                alerg = ", ".join(info["alergenos"]) if info["alergenos"] else "sin alérgenos"
-                st.markdown(
-                    f"**{nombre}** — 💰 ${info['precio']:,} — ⏱️ {info['tiempo']} min  \n"
-                    f"⚠️ _{alerg}_"
-                )
 
 
 @st.cache_resource
@@ -469,13 +445,6 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
-# ----------------------- MODO MENÚ (destino del QR, pensado para celular) -----------------------
-if st.query_params.get("menu") == "1":
-    st.subheader("📋 Nuestro Menú")
-    mostrar_menu(True)
-    st.link_button("🛒 Hacer un pedido", APP_URL)
-    st.stop()
-
 vista = st.radio(
     "🧭 SELECCIONA LA VISTA:",
     ["👤 Vista Cliente (Usuario)", "👨‍🍳 Vista Cocina / Operación"],
@@ -531,10 +500,14 @@ if vista == "👤 Vista Cliente (Usuario)":
     # ------------------------------ COLUMNA MENÚ ------------------------------
     with col_menu:
         st.subheader("📋 Nuestro Menú")
-        mostrar_menu(False)
-        with st.expander("📱 Ver el menú en tu celular (QR)"):
-            st.image(qr_png(MENU_URL), width=220, caption="Escanéalo con la cámara de tu celular")
-            st.download_button("⬇️ Descargar QR (PNG)", qr_png(MENU_URL), "menu_qr.png", "image/png")
+        for cat, platos in MENU.items():
+            with st.expander(f"{cat} ({len(platos)} platos)", expanded=False):
+                for nombre, info in platos.items():
+                    alerg = ", ".join(info["alergenos"]) if info["alergenos"] else "sin alérgenos"
+                    st.markdown(
+                        f"**{nombre}** — 💰 ${info['precio']:,} — ⏱️ {info['tiempo']} min  \n"
+                        f"⚠️ _{alerg}_"
+                    )
 
         st.divider()
         st.subheader("🛒 Hacer Pedido Rápido")
