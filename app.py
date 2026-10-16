@@ -124,7 +124,7 @@ st.markdown("""
     .plato-agotado { opacity: 0.55; }
     .plato-agotado .plato-nombre { text-decoration: line-through; }
     
-    .stApp::before {
+        .stApp::before {
         content: "";
         position: fixed;
         top: 0;
@@ -137,6 +137,17 @@ st.markdown("""
         background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2MDAiIGhlaWdodD0iNjAwIiB2aWV3Qm94PSIwIDAgNjAwIDYwMCI+CiAgPGcgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjQjM0QTI1IiBzdHJva2Utd2lkdGg9IjEuNiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj4KICAgIDwhLS0gQ8OtcmN1bG8gLSBwbGF0by9uYXJhbmphIC0tPgogICAgPGNpcmNsZSBjeD0iNjAiIGN5PSI2MCIgcj0iMjIiLz4KICAgIDxjaXJjbGUgY3g9IjYwIiBjeT0iNjAiIHI9IjE0Ii8+CiAgICA8IS0tIFRhemEgZGUgY2Fmw6kgLS0+CiAgICA8cGF0aCBkPSJNMTQwIDUwIGgzMCB2MjIgYTE1IDE1IDAgMCAxIC0zMCAwIHoiLz4KICAgIDxwYXRoIGQ9Ik0xNzAgNTYgcTEwIDQgMCAxNCIvPgogICAgPHBhdGggZD0iTTE0NiA0NCBxMyAtNiAwIC0xMiBNMTU2IDQ0IHEzIC02IDAgLTEyIE0xNjYgNDQgcTMgLTYgMCAtMTIiLz4KICAgIDwhLS0gQ29wYSBkZSB2aW5vIC0tPgogICAgPHBhdGggZD0iTTI0MCAzOCBxMCAyMCAxMCAyNCBxMTAgLTQgMTAgLTI0IHoiLz4KICAgIDxsaW5lIHgxPSIyNTAiIHkxPSI2MiIgeDI9IjI1MCIgeTI9Ijc4Ii8+CiAgICA8bGluZSB4MT0iMjQyIiB5MT0iNzgiIHgyPSIyNTgiIHkyPSI3OCIvPgogICAgPCEtLSBIYW1idXJndWVzYSAtLT4KICAgIDxwYXRoIGQ9Ik0zMjAgNDAgcTI1IC0xMiA1MCAwIHoiLz4KICAgIDxsaW5lIHgxPSIzMjAiIHkxPSI0OCIgeDI9IjM3MCIgeTI9IjQ4Ii8+CiAgICA8cGF0aCBkPSJNMzIwIDU0IHEyNSA4IDUwIDAiLz4KICAgIDxwYXRoIGQ9Ik0zMjAgNjIgcTI1IC02IDUwIDAgeiIvPgogICAgPCEtLSBDdWNoaWxsbyB5IHRlbmVkb3IgLS0+CiAgICA8bGluZSB4MT0iNDEwIiB5MT0iMzQiIHgyPSI0MTAiIHkyPSI4MCIvPgogICAgPHBhdGggZD0iTTQyMCAzNCB2MTIgaDYgdi0xMiBNNDIwIDQ2IHYzNCIvPgogICAgPCEtLSBQaXp6YSAtLT4KICAgIDxwYXRoIGQ9Ik00OTAgMzQgbDIwIDQwIGgtNDAgeiIvPgogICAgPGNpcmNsZSBjeD0iNDk1IiBjeT0iNTUiIHI9IjIiLz4KICAgIDxjaXJjbGUgY3g9IjQ4NSIgY3k9IjYwIiByPSIyIi8+CiAgICA8Y2lyY2xlIGN4PSI1MDAiIGN5PSI2MiIgcj0iMiIvPgogICAgCiAgICA8IS0tIFN1c2hpIC0tPgogICAgPGVsbGlwc2UgY3g9IjYwIiBjeT0iMTQwIiByeD0iMjIiIHJ5PSIxNCIvPgogICAgPGVsbGlwc2UgY3g9IjYwIiBjeT0iMTQwIiByeD0iMTQiIHJ5PSI4Ii8+CiAgICA8IS0tIFZhc28gZGUgYmViaWRhIC0tPgogICAgPHBhdGggZD0iTTEyMCAxMjAgbC02IDQ0IGgzMiBsLTYgLTQ0IHoiLz4KICAgIDxsaW5lIHgxPSIxMTgiIHkxPSIxMzIiIHgyPSIxNTIiIHkyPSIxMzIiLz4KICAgIDxsaW5lIHgxPSIxNDAiIHkxPSIxMTIiIHgyPSIxNTAiIHkyPSIxMDAiLz4KICAgIDwhLS0gVGVuZWRvciBzb2xvIC0tPgogICAgPGxpbmUgeDE9IjIwMCIgeTE9IjEyMCIgeDI9IjIwMCIgeTI9IjE2NCIvPgogICAgPHBhdGggZD0iTTE5NCAxMjAgdjEwIGgxMiB2LTEwIi8+CiAgICA8IS0tIERvbnV0IC0tPgogICAgPGNpcmNsZSBjeD0iMjgwIiBjeT0iMTQyIiByPSIyMCIvPgogICAgPGNpcmNsZSBjeD0iMjgwIiBjeT0iMTQyIiByPSI3Ii8+CiAgICA8cGF0aCBkPSJNMjY2IDEzMCBxNCA0IDAgOCIvPgogICAgPCEtLSBIZWxhZG8gZGUgY29ubyAtLT4KICAgIDxwYXRoIGQ9Ik0zNDAgMTIyIGwxMiA0MCBsMTIgLTQwIHoiLz4KICAgIDxjaXJjbGUgY3g9IjM1MiIgY3k9IjExOCIgcj0iMTQiLz4KICAgIDwhLS0gRW5zYWxhZGEgLS0+CiAgICA8cGF0aCBkPSJNNDAwIDEzMCBxMjUgLTE0IDUwIDAgcS0yNSAyMiAtNTAgMCB6Ii8+CiAgICA8IS0tIFBhbiAtLT4KICAgIDxwYXRoIGQ9Ik00ODAgMTM4IHEwIC0yMCAzMCAtMjAgcTMwIDAgMzAgMjAgcTAgOCAtOCA4IGgtNDQgcS04IDAgLTggLTggeiIvPgogICAgPGxpbmUgeDE9IjQ5MCIgeTE9IjE0MCIgeDI9IjQ5MCIgeTI9IjE0NiIvPgogICAgPGxpbmUgeDE9IjUwNSIgeTE9IjE0MCIgeDI9IjUwNSIgeTI9IjE0NiIvPgogICAgPGxpbmUgeDE9IjUyMCIgeTE9IjE0MCIgeDI9IjUyMCIgeTI9IjE0NiIvPgogICAgCiAgICA8IS0tIE1hbnphbmEgLS0+CiAgICA8Y2lyY2xlIGN4PSI2MCIgY3k9IjIzMCIgcj0iMTgiLz4KICAgIDxwYXRoIGQ9Ik02MCAyMTIgcTQgLTggMTAgLTEwIi8+CiAgICA8cGF0aCBkPSJNNTQgMjE2IHEtNCAtNiAtMTAgLTYgcTAgNiA2IDgiLz4KICAgIDwhLS0gUXVlc28gLS0+CiAgICA8cGF0aCBkPSJNMTMwIDIyMCBsNDAgMCBsMCAyNCBsLTQwIDAgeiIvPgogICAgPHBhdGggZD0iTTEzMCAyMjAgbDIwIC0xMiBsNDAgMCBsLTIwIDEyIi8+CiAgICA8Y2lyY2xlIGN4PSIxNDUiIGN5PSIyMzIiIHI9IjIiLz4KICAgIDxjaXJjbGUgY3g9IjE2MCIgY3k9IjIzNCIgcj0iMiIvPgogICAgPCEtLSBQZXogLS0+CiAgICA8cGF0aCBkPSJNMjEwIDIzMiBxMjUgLTE2IDUwIDAgcS0yNSAxNiAtNTAgMCB6Ii8+CiAgICA8cGF0aCBkPSJNMjEwIDIzMiBsLTEwIC04IGwwIDE2IHoiLz4KICAgIDxjaXJjbGUgY3g9IjI0NSIgY3k9IjIyOCIgcj0iMS41Ii8+CiAgICA8IS0tIFphbmFob3JpYSAtLT4KICAgIDxwYXRoIGQ9Ik0yOTAgMjE4IGwyMCA0MCBsLTIwIC02IHoiLz4KICAgIDxwYXRoIGQ9Ik0yOTAgMjE4IHEtMiAtOCA0IC0xMCBNMjk2IDIxOCBxMiAtOCA4IC04Ii8+CiAgICA8IS0tIFRhemEgZ3JhbmRlIC0tPgogICAgPHBhdGggZD0iTTM2MCAyMTggcTAgMzIgMjQgMzIgcTI0IDAgMjQgLTMyIHoiLz4KICAgIDxwYXRoIGQ9Ik00MDggMjI2IHExNCA0IDAgMTYiLz4KICAgIDwhLS0gQ3VjaGFyYSAtLT4KICAgIDxlbGxpcHNlIGN4PSI0NzAiIGN5PSIyMjQiIHJ4PSI4IiByeT0iMTIiLz4KICAgIDxsaW5lIHgxPSI0NzAiIHkxPSIyMzYiIHgyPSI0NzAiIHkyPSIyNTgiLz4KICAgIDwhLS0gUGxhdG8gY29uIHRhcGEgLS0+CiAgICA8Y2lyY2xlIGN4PSI1MzAiIGN5PSIyMzgiIHI9IjIwIi8+CiAgICA8cGF0aCBkPSJNNTE0IDIzOCBoMzIiLz4KICAgIDxjaXJjbGUgY3g9IjUzMCIgY3k9IjIyMiIgcj0iMyIvPgogICAgCiAgICA8IS0tIENvcGFzIC8gYm90ZWxsYSAtLT4KICAgIDxwYXRoIGQ9Ik02MCAzMjAgcTAgNDAgMTQgNDAgcTE0IDAgMTQgLTQwIHoiLz4KICAgIDxwYXRoIGQ9Ik02MCAzMjAgcTE0IC02IDI4IDAiLz4KICAgIDxsaW5lIHgxPSI3NCIgeTE9IjMyNCIgeDI9Ijc0IiB5Mj0iMzU4Ii8+CiAgICA8IS0tIFV2YXMgLS0+CiAgICA8Y2lyY2xlIGN4PSIxNTAiIGN5PSIzMjQiIHI9IjYiLz4KICAgIDxjaXJjbGUgY3g9IjE2MiIgY3k9IjMyOCIgcj0iNiIvPgogICAgPGNpcmNsZSBjeD0iMTU2IiBjeT0iMzQwIiByPSI2Ii8+CiAgICA8Y2lyY2xlIGN4PSIxNDQiIGN5PSIzMzYiIHI9IjYiLz4KICAgIDxwYXRoIGQ9Ik0xNTYgMzE4IHEwIC04IDYgLTEwIi8+CiAgICA8IS0tIFNldGFzIC0tPgogICAgPHBhdGggZD0iTTIyMCAzMzAgcTEwIC0xNiAyNCAwIHoiLz4KICAgIDxsaW5lIHgxPSIyMzIiIHkxPSIzMzAiIHgyPSIyMzIiIHkyPSIzNDYiLz4KICAgIDxwYXRoIGQ9Ik0yNTAgMzM2IHE4IC0xMiAxOCAwIHoiLz4KICAgIDxsaW5lIHgxPSIyNTkiIHkxPSIzMzYiIHgyPSIyNTkiIHkyPSIzNDgiLz4KICAgIDwhLS0gVGF6YSBkZSB0w6kgLS0+CiAgICA8ZWxsaXBzZSBjeD0iMzIwIiBjeT0iMzQwIiByeD0iMTgiIHJ5PSI2Ii8+CiAgICA8cGF0aCBkPSJNMzAyIDM0MCB2LTEyIHExOCAtNiAzNiAwIHYxMiIvPgogICAgPHBhdGggZD0iTTMzOCAzMzQgcTggMiAwIDgiLz4KICAgIDwhLS0gRnJlc2EgLS0+CiAgICA8cGF0aCBkPSJNMzkwIDMyNiBxLTEwIDYgMCAyMCBxMTAgOCAyMCAwIHExMCAtMTQgMCAtMjAgeiIvPgogICAgPHBhdGggZD0iTTQwMCAzMjAgcTAgLTYgNiAtOCIvPgogICAgPCEtLSBQZXJhIC0tPgogICAgPHBhdGggZD0iTTQ3MCAzMjggcS04IC04IC04IC0xNiBxMCAtMTAgMTIgLTEwIHExMiAwIDEyIDEwIHEwIDggLTggMTYgcS00IDYgLTQgMTIgaC00IHEwIC02IC00IC0xMiB6Ii8+CiAgICA8cGF0aCBkPSJNNDc0IDMwMiBxMiAtNiA2IC04Ii8+CiAgICAKICAgIDwhLS0gUG9zdHJlIC8gcGFzdGVsIC0tPgogICAgPHBhdGggZD0iTTYwIDQyMCBsNDAgMCBsMCAyMCBsLTQwIDAgeiIvPgogICAgPHBhdGggZD0iTTYwIDQyMCBxMjAgLTE0IDQwIDAiLz4KICAgIDxsaW5lIHgxPSI3MCIgeTE9IjQ0MCIgeDI9IjcwIiB5Mj0iNDQ2Ii8+CiAgICA8bGluZSB4MT0iOTAiIHkxPSI0NDAiIHgyPSI5MCIgeTI9IjQ0NiIvPgogICAgPCEtLSBDdWNoaWxsbyBncmFuZGUgLS0+CiAgICA8cGF0aCBkPSJNMTQwIDQwOCBsMTAgNDIgbC02IDAgbC00IC0yMiBsLTQgMjIgbC02IDAgeiIvPgogICAgPCEtLSBHYWxsZXRhcyAtLT4KICAgIDxjaXJjbGUgY3g9IjIxMCIgY3k9IjQyOCIgcj0iMTYiLz4KICAgIDxjaXJjbGUgY3g9IjIwNCIgY3k9IjQyNCIgcj0iMS41Ii8+CiAgICA8Y2lyY2xlIGN4PSIyMTYiIGN5PSI0MzAiIHI9IjEuNSIvPgogICAgPGNpcmNsZSBjeD0iMjEwIiBjeT0iNDM0IiByPSIxLjUiLz4KICAgIDwhLS0gU2FuZMOtYSAtLT4KICAgIDxwYXRoIGQ9Ik0yNzAgNDI4IHEwIC0yMCAyMCAtMjAgcTIwIDAgMjAgMjAgeiIvPgogICAgPHBhdGggZD0iTTI3NiA0MjQgcTE0IC0xMiAyOCAwIi8+CiAgICA8Y2lyY2xlIGN4PSIyODQiIGN5PSI0MjgiIHI9IjEiLz4KICAgIDxjaXJjbGUgY3g9IjI5NCIgY3k9IjQyOCIgcj0iMSIvPgogICAgPCEtLSBTYXJ0w6luIC0tPgogICAgPGVsbGlwc2UgY3g9IjM3MCIgY3k9IjQzMCIgcng9IjIyIiByeT0iMTAiLz4KICAgIDxsaW5lIHgxPSIzOTIiIHkxPSI0MzAiIHgyPSI0MTAiIHkyPSI0NDAiLz4KICAgIDwhLS0gQm90ZWxsYSAtLT4KICAgIDxwYXRoIGQ9Ik00NzAgNDEwIHEtNCAtNiAwIC0xMiBoOCBxNCA2IDAgMTIgdjM0IHEwIDQgLTQgNCBxLTQgMCAtNCAtNCB6Ii8+CiAgICA8bGluZSB4MT0iNDcyIiB5MT0iNDIwIiB4Mj0iNDgwIiB5Mj0iNDIwIi8+CiAgICAKICAgIDwhLS0gQmFndWV0dGUgLS0+CiAgICA8cGF0aCBkPSJNNDAgNTQwIHE0MCAtMTQgNjAgMTAgcS0zMCAxMiAtNjAgLTEwIHoiLz4KICAgIDxsaW5lIHgxPSI1NSIgeTE9IjUzNiIgeDI9IjY1IiB5Mj0iNTQ2Ii8+CiAgICA8bGluZSB4MT0iNzAiIHkxPSI1NDAiIHgyPSI4MCIgeTI9IjU1MCIvPgogICAgPCEtLSBDdWNoaWxsbyB5IHRlbmVkb3IgY3J1emFkb3MgLS0+CiAgICA8bGluZSB4MT0iMTQwIiB5MT0iNTIwIiB4Mj0iMTcwIiB5Mj0iNTYwIi8+CiAgICA8cGF0aCBkPSJNMTM4IDUxOCB2MTAgaDYgdi0xMCIvPgogICAgPGxpbmUgeDE9IjE3MCIgeTE9IjUyMCIgeDI9IjE0MCIgeTI9IjU2MCIvPgogICAgPCEtLSBQYW5xdWVxdWVzIC0tPgogICAgPGVsbGlwc2UgY3g9IjI0MCIgY3k9IjU0MCIgcng9IjI0IiByeT0iOCIvPgogICAgPGVsbGlwc2UgY3g9IjI0MCIgY3k9IjUzNCIgcng9IjIyIiByeT0iNyIvPgogICAgPGVsbGlwc2UgY3g9IjI0MCIgY3k9IjUyOCIgcng9IjIwIiByeT0iNiIvPgogICAgPHBhdGggZD0iTTI0MCA1MjIgcTQgLTYgOCAtNiIvPgogICAgPCEtLSBIdWV2byBmcml0byAtLT4KICAgIDxwYXRoIGQ9Ik0zMzAgNTI4IHEtNCAtMTIgNiAtMTYgcTEwIC00IDE4IDQgcTEwIC0yIDEyIDggcTIgMTIgLTEwIDE0IHEtMTAgNCAtMTggMCBxLTYgLTIgLTggLTEwIHoiLz4KICAgIDxjaXJjbGUgY3g9IjM0MiIgY3k9IjUzMiIgcj0iNiIvPgogICAgPCEtLSBCb2wgY29uIGZydXRhIC0tPgogICAgPHBhdGggZD0iTTQxMCA1MzYgcTMwIDIwIDYwIDAgeiIvPgogICAgPGNpcmNsZSBjeD0iNDQwIiBjeT0iNTI0IiByPSI1Ii8+CiAgICA8Y2lyY2xlIGN4PSI0MjgiIGN5PSI1MjgiIHI9IjQiLz4KICAgIDxjaXJjbGUgY3g9IjQ1MiIgY3k9IjUyOCIgcj0iNCIvPgogICAgPCEtLSBUYXphIGNvbiBhc2EgLS0+CiAgICA8cGF0aCBkPSJNNTAwIDUyOCBoMzAgdjE2IHEwIDYgLTYgNiBoLTE4IHEtNiAwIC02IC02IHoiLz4KICAgIDxwYXRoIGQ9Ik01MzAgNTMyIHE4IDQgMCAxMiIvPgogIDwvZz4KPC9zdmc+");
         background-size: 600px 600px;
         background-repeat: repeat;
+    }
+
+    .stApp > * {
+        position: relative;
+        z-index: 1;
+    }
+
+    .header-box, .pedido-card, .plato-card, .stChatMessage {
+        background-color: #FFF8EE;
+        position: relative;
+        z-index: 2;
     }
     
 </style>
@@ -558,46 +569,17 @@ def juego_flappy():
     </script></body></html>
     """, height=580)
 
+
 def juego_tetris():
     components.html("""
-    <!DOCTYPE html><html><head>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <style>
-        * { box-sizing: border-box; }
+    <!DOCTYPE html><html><head><style>
         body { margin: 0; background: #FFF8EE; font-family: Georgia, serif; }
-        #wrap { display: flex; justify-content: center; gap: 20px;
-                padding: 10px; flex-wrap: wrap; }
-        canvas { background: #FFE4B5; border: 2px solid #B34A25; border-radius: 8px;
-                 touch-action: none; max-width: 100%; height: auto; }
+        #wrap { display: flex; justify-content: center; gap: 20px; padding: 10px; }
+        canvas { background: #FFE4B5; border: 2px solid #B34A25; border-radius: 8px; }
         #info { color: #3E2C23; font-size: 15px; }
         #info b { color: #B34A25; }
         .key { display: inline-block; padding: 2px 8px; background: #F6E7D2;
                border: 1px solid #E3CDB0; border-radius: 4px; font-family: monospace; }
-        #controles { display: flex; justify-content: center; gap: 10px;
-                     margin-top: 14px; flex-wrap: wrap; padding: 0 8px 8px; }
-        .btn-touch {
-            background: #B34A25; color: #FFFFFF; border: none;
-            border-radius: 10px; padding: 16px 22px; font-size: 22px;
-            font-weight: bold; cursor: pointer; user-select: none;
-            -webkit-user-select: none; -webkit-tap-highlight-color: transparent;
-            min-width: 64px; min-height: 64px;
-            box-shadow: 0 3px 0 #7A2E14;
-            transition: transform 0.05s;
-            touch-action: manipulation;
-        }
-        .btn-touch:active { transform: translateY(3px); box-shadow: 0 0 0 #7A2E14; }
-        #hint { text-align: center; color: #3E2C23; font-size: 13px;
-                margin-top: 8px; opacity: 0.75; padding: 0 8px 12px; }
-
-        /* En móvil: apilar vertical y hacer canvas más pequeño */
-        @media (max-width: 520px) {
-            #wrap { flex-direction: column; align-items: center; gap: 10px; }
-            #info { font-size: 13px; text-align: center; }
-            #info p { margin: 3px 0; }
-            #info hr { display: none; }
-            .btn-touch { padding: 14px 18px; font-size: 20px;
-                         min-width: 58px; min-height: 58px; }
-        }
     </style></head><body>
     <div id="wrap">
         <canvas id="board" width="240" height="480"></canvas>
@@ -607,21 +589,11 @@ def juego_tetris():
             <p><b>Récord:</b> <span id="best">0</span></p>
             <hr>
             <p><span class="key">←</span> <span class="key">→</span> mover</p>
-            <p><span class="key">↓</span> bajar · <span class="key">↑</span> rotar</p>
+            <p><span class="key">↓</span> bajar</p>
+            <p><span class="key">↑</span> rotar</p>
             <p><span class="key">Espacio</span> caída rápida</p>
         </div>
     </div>
-
-    <div id="controles">
-        <button class="btn-touch" id="btn-left">◀</button>
-        <button class="btn-touch" id="btn-rotate">⟳</button>
-        <button class="btn-touch" id="btn-right">▶</button>
-        <button class="btn-touch" id="btn-down">▼</button>
-        <button class="btn-touch" id="btn-drop"
-                style="padding: 14px 16px; font-size: 14px;">DROP</button>
-    </div>
-    <div id="hint">Teclado o botones táctiles</div>
-
     <script>
         const canvas = document.getElementById('board');
         const ctx = canvas.getContext('2d');
@@ -642,7 +614,6 @@ def juego_tetris():
         let currentColor = '#B34A25';
         best = parseInt(localStorage.getItem('tetris_best') || '0');
         bestEl.textContent = best;
-
         function reset() {
             board = Array.from({length: ROWS}, () => Array(COLS).fill(null));
             score = 0; lines = 0; gameOver = false;
@@ -693,7 +664,6 @@ def juego_tetris():
             }
         }
         function rotate() {
-            if (gameOver) return;
             const N = piece.length, M = piece[0].length;
             const rot = Array.from({length: M}, () => Array(N).fill(0));
             for (let y = 0; y < N; y++)
@@ -702,74 +672,22 @@ def juego_tetris():
             const backup = piece; piece = rot;
             if (colision()) piece = backup;
         }
-        function mover(dir) {
-            if (gameOver) return;
-            pos.x += dir;
-            if (colision()) pos.x -= dir;
-        }
         function drop() {
-            if (gameOver) return;
             pos.y++;
             if (colision()) {
                 pos.y--; merge(); limpiarLineas(); nuevaPiezaConColor();
             }
             dropCounter = 0;
         }
-        function hardDrop() { if (gameOver) return; while (!colision()) pos.y++; pos.y--; drop(); }
-
+        function hardDrop() { while (!colision()) pos.y++; pos.y--; drop(); }
         document.addEventListener('keydown', e => {
             if (gameOver && e.code === 'Space') { reset(); return; }
-            if (e.code === 'ArrowLeft') { e.preventDefault(); mover(-1); }
-            else if (e.code === 'ArrowRight') { e.preventDefault(); mover(1); }
-            else if (e.code === 'ArrowDown') { e.preventDefault(); drop(); }
-            else if (e.code === 'ArrowUp') { e.preventDefault(); rotate(); }
+            if (e.code === 'ArrowLeft') { pos.x--; if (colision()) pos.x++; }
+            else if (e.code === 'ArrowRight') { pos.x++; if (colision()) pos.x--; }
+            else if (e.code === 'ArrowDown') { drop(); }
+            else if (e.code === 'ArrowUp') { rotate(); }
             else if (e.code === 'Space') { e.preventDefault(); hardDrop(); }
         });
-
-        // --- BOTONES TÁCTILES ---
-        function bindHold(btnId, action, repeatDelay = 180) {
-            const btn = document.getElementById(btnId);
-            let timer = null;
-            let active = false;
-            const start = (e) => {
-                if (e) e.preventDefault();
-                if (active) return;
-                active = true;
-                action();
-                timer = setInterval(action, repeatDelay);
-            };
-            const stop = (e) => {
-                if (e) e.preventDefault();
-                active = false;
-                if (timer) { clearInterval(timer); timer = null; }
-            };
-            // Touch (móvil) - prioridad
-            btn.addEventListener('touchstart', start, { passive: false });
-            btn.addEventListener('touchend', stop);
-            btn.addEventListener('touchcancel', stop);
-            // Mouse (PC)
-            btn.addEventListener('mousedown', start);
-            btn.addEventListener('mouseup', stop);
-            btn.addEventListener('mouseleave', stop);
-            btn.addEventListener('contextmenu', e => e.preventDefault());
-        }
-
-        bindHold('btn-left', () => mover(-1));
-        bindHold('btn-right', () => mover(1));
-        bindHold('btn-down', () => drop(), 80);
-
-        // Botones de un solo uso
-        document.getElementById('btn-rotate').addEventListener('click', e => {
-            e.preventDefault();
-            if (gameOver) { reset(); return; }
-            rotate();
-        });
-        document.getElementById('btn-drop').addEventListener('click', e => {
-            e.preventDefault();
-            if (gameOver) { reset(); return; }
-            hardDrop();
-        });
-
         let lastTime = 0;
         function update(time = 0) {
             const delta = time - lastTime; lastTime = time;
@@ -796,12 +714,12 @@ def juego_tetris():
                 ctx.fillStyle = 'rgba(62,44,35,0.75)'; ctx.fillRect(0,200,canvas.width,80);
                 ctx.fillStyle = '#FFF8EE'; ctx.font = 'bold 22px Georgia'; ctx.textAlign = 'center';
                 ctx.fillText('GAME OVER', canvas.width/2, 235);
-                ctx.font = '14px Georgia'; ctx.fillText('Toca DROP para reiniciar', canvas.width/2, 260);
+                ctx.font = '14px Georgia'; ctx.fillText('Presiona ESPACIO para reiniciar', canvas.width/2, 260);
             }
         }
         reset(); update();
     </script></body></html>
-    """, height=950)
+    """, height=520)
 
 
 def juego_carreritas():
@@ -1146,6 +1064,7 @@ def menu_publico():
 if str(st.query_params.get("menu", "")).lower() in ("1", "true", "si"):
     menu_publico()
     st.stop()
+
 
 # ==============================================================================
 # 🎬 VIDEO DE BIENVENIDA (hero)
