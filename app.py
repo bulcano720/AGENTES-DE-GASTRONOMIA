@@ -1,3 +1,4 @@
+import base64
 import hmac
 import html
 import io
@@ -1130,6 +1131,99 @@ if str(st.query_params.get("menu", "")).lower() in ("1", "true", "si"):
     menu_publico()
     st.stop()
 
+# ==============================================================================
+# 🎬 VIDEO DE BIENVENIDA (hero)
+# ==============================================================================
+RUTA_VIDEO = "assets/bienvenida.mp4"
+
+
+@st.cache_data(show_spinner=False)
+def cargar_video_base64(ruta):
+    """Lee el video y lo devuelve como string base64. Si no existe, devuelve None."""
+    try:
+        with open(ruta, "rb") as f:
+            return base64.b64encode(f.read()).decode()
+    except (FileNotFoundError, OSError):
+        return None
+
+
+def mostrar_hero_bienvenida():
+    """Muestra el video de bienvenida con overlay y texto encima. Si no existe el video, lo omite."""
+    video_b64 = cargar_video_base64(RUTA_VIDEO)
+    if not video_b64:
+        return  # Si no hay video, no rompemos la app
+
+    video_html = f"""
+    <style>
+    .hero {{
+        position: relative;
+        width: 100%;
+        height: 420px;
+        overflow: hidden;
+        border-radius: 15px;
+        margin-bottom: 25px;
+        box-shadow: 0 6px 24px rgba(62, 44, 35, 0.25);
+    }}
+    .hero video {{
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }}
+    .hero-overlay {{
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(135deg, rgba(62,44,35,0.55) 0%, rgba(179,74,37,0.35) 100%);
+        z-index: 1;
+    }}
+    .hero-text {{
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        text-align: center;
+        color: #FFF8EE;
+        text-shadow: 3px 3px 20px rgba(0,0,0,0.9);
+        z-index: 2;
+        width: 90%;
+    }}
+    .hero-text h1 {{
+        font-family: Georgia, 'Times New Roman', serif !important;
+        font-size: 3.2rem;
+        margin: 0 0 8px 0;
+        color: #FFF8EE !important;
+        letter-spacing: 2px;
+    }}
+    .hero-text p {{
+        font-size: 1.15rem;
+        margin: 0;
+        opacity: 0.95;
+    }}
+    @media (max-width: 600px) {{
+        .hero {{ height: 260px; }}
+        .hero-text h1 {{ font-size: 2rem; }}
+        .hero-text p {{ font-size: 0.95rem; }}
+    }}
+    </style>
+
+    <div class="hero">
+        <video autoplay muted loop playsinline>
+            <source src="data:video/mp4;base64,{video_b64}" type="video/mp4">
+        </video>
+        <div class="hero-overlay"></div>
+        <div class="hero-text">
+            <h1>Bienvenidos a {esc(NOMBRE_REST)}</h1>
+            <p>Una experiencia gastronómica única</p>
+        </div>
+    </div>
+    """
+    st.markdown(video_html, unsafe_allow_html=True)
+
+# ==============================================================================
+# 🎬 VIDEO DE BIENVENIDA (arriba de todo)
+# ==============================================================================
+if "hero_mostrado" not in st.session_state:
+    mostrar_hero_bienvenida()
+    st.session_state["hero_mostrado"] = True
 
 # ==============================================================================
 # ENCABEZADO
