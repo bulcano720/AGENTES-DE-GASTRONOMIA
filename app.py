@@ -541,17 +541,29 @@ def juego_flappy():
     </script></body></html>
     """, height=580)
 
-
 def juego_tetris():
     components.html("""
     <!DOCTYPE html><html><head><style>
         body { margin: 0; background: #FFF8EE; font-family: Georgia, serif; }
-        #wrap { display: flex; justify-content: center; gap: 20px; padding: 10px; }
-        canvas { background: #FFE4B5; border: 2px solid #B34A25; border-radius: 8px; }
+        #wrap { display: flex; justify-content: center; gap: 20px; padding: 10px; flex-wrap: wrap; }
+        canvas { background: #FFE4B5; border: 2px solid #B34A25; border-radius: 8px; touch-action: none; }
         #info { color: #3E2C23; font-size: 15px; }
         #info b { color: #B34A25; }
         .key { display: inline-block; padding: 2px 8px; background: #F6E7D2;
                border: 1px solid #E3CDB0; border-radius: 4px; font-family: monospace; }
+        #controles { display: flex; justify-content: center; gap: 10px;
+                     margin-top: 14px; flex-wrap: wrap; }
+        .btn-touch {
+            background: #B34A25; color: #FFFFFF; border: none;
+            border-radius: 10px; padding: 16px 22px; font-size: 22px;
+            font-weight: bold; cursor: pointer; user-select: none;
+            min-width: 64px; min-height: 64px;
+            box-shadow: 0 3px 0 #7A2E14;
+            transition: transform 0.05s;
+            touch-action: manipulation;
+        }
+        .btn-touch:active { transform: translateY(3px); box-shadow: 0 0 0 #7A2E14; }
+        #hint { text-align: center; color: #3E2C23; font-size: 13px; margin-top: 8px; opacity: 0.75; }
     </style></head><body>
     <div id="wrap">
         <canvas id="board" width="240" height="480"></canvas>
@@ -566,6 +578,17 @@ def juego_tetris():
             <p><span class="key">Espacio</span> caída rápida</p>
         </div>
     </div>
+
+    <!-- Controles táctiles para móvil -->
+    <div id="controles">
+        <button class="btn-touch" id="btn-left">◀</button>
+        <button class="btn-touch" id="btn-rotate">⟳</button>
+        <button class="btn-touch" id="btn-right">▶</button>
+        <button class="btn-touch" id="btn-down">▼</button>
+        <button class="btn-touch" id="btn-drop" style="padding: 16px 18px; font-size: 15px;">DROP</button>
+    </div>
+    <div id="hint">Puedes usar las flechas del teclado o tocar los botones</div>
+
     <script>
         const canvas = document.getElementById('board');
         const ctx = canvas.getContext('2d');
@@ -586,6 +609,7 @@ def juego_tetris():
         let currentColor = '#B34A25';
         best = parseInt(localStorage.getItem('tetris_best') || '0');
         bestEl.textContent = best;
+
         function reset() {
             board = Array.from({length: ROWS}, () => Array(COLS).fill(null));
             score = 0; lines = 0; gameOver = false;
@@ -636,6 +660,7 @@ def juego_tetris():
             }
         }
         function rotate() {
+            if (gameOver) return;
             const N = piece.length, M = piece[0].length;
             const rot = Array.from({length: M}, () => Array(N).fill(0));
             for (let y = 0; y < N; y++)
@@ -644,22 +669,71 @@ def juego_tetris():
             const backup = piece; piece = rot;
             if (colision()) piece = backup;
         }
+        function mover(dir) {
+            if (gameOver) return;
+            pos.x += dir;
+            if (colision()) pos.x -= dir;
+        }
         function drop() {
+            if (gameOver) return;
             pos.y++;
             if (colision()) {
                 pos.y--; merge(); limpiarLineas(); nuevaPiezaConColor();
             }
             dropCounter = 0;
         }
-        function hardDrop() { while (!colision()) pos.y++; pos.y--; drop(); }
+        function hardDrop() { if (gameOver) return; while (!colision()) pos.y++; pos.y--; drop(); }
+
         document.addEventListener('keydown', e => {
             if (gameOver && e.code === 'Space') { reset(); return; }
-            if (e.code === 'ArrowLeft') { pos.x--; if (colision()) pos.x++; }
-            else if (e.code === 'ArrowRight') { pos.x++; if (colision()) pos.x--; }
-            else if (e.code === 'ArrowDown') { drop(); }
-            else if (e.code === 'ArrowUp') { rotate(); }
+            if (e.code === 'ArrowLeft') { e.preventDefault(); mover(-1); }
+            else if (e.code === 'ArrowRight') { e.preventDefault(); mover(1); }
+            else if (e.code === 'ArrowDown') { e.preventDefault(); drop(); }
+            else if (e.code === 'ArrowUp') { e.preventDefault(); rotate(); }
             else if (e.code === 'Space') { e.preventDefault(); hardDrop(); }
         });
+
+        // --- BOTONES TÁCTILES ---
+        function bindHold(btnId, action, repeatDelay = 180) {
+            const btn = document.getElementById(btnId);
+            let timer = null;
+            const start = (e) => {
+                e.preventDefault();
+                if (gameOver && btnId === 'btn-drop') { reset(); return; }
+                action();
+                timer = setInterval(action, repeatDelay);
+            };
+            const stop = (e) => {
+                if (e) e.preventDefault();
+                if (timer) { clearInterval(timer); timer = null; }
+            };
+            btn.addEventListener('mousedown', start);
+            btn.addEventListener('touchstart', start, { passive: false });
+            btn.addEventListener('mouseup', stop);
+            btn.addEventListener('mouseleave', stop);
+            btn.addEventListener('touchend', stop);
+            btn.addEventListener('touchcancel', stop);
+            // Doble clic evita zoom accidental en móviles
+            btn.addEventListener('dblclick', e => e.preventDefault());
+        }
+
+        // Mantener presionado mueve repetidamente
+        bindHold('btn-left', () => mover(-1));
+        bindHold('btn-right', () => mover(1));
+        bindHold('btn-down', () => drop(), 80);   // bajar más rápido al mantener
+
+        // Estos son de un solo uso
+        document.getElementById('btn-rotate').addEventListener('click', e => {
+            e.preventDefault();
+            if (gameOver) { reset(); return; }
+            rotate();
+        });
+        document.getElementById('btn-drop').addEventListener('click', e => {
+            e.preventDefault();
+            if (gameOver) { reset(); return; }
+            hardDrop();
+        });
+
         let lastTime = 0;
         function update(time = 0) {
             const delta = time - lastTime; lastTime = time;
@@ -686,12 +760,12 @@ def juego_tetris():
                 ctx.fillStyle = 'rgba(62,44,35,0.75)'; ctx.fillRect(0,200,canvas.width,80);
                 ctx.fillStyle = '#FFF8EE'; ctx.font = 'bold 22px Georgia'; ctx.textAlign = 'center';
                 ctx.fillText('GAME OVER', canvas.width/2, 235);
-                ctx.font = '14px Georgia'; ctx.fillText('Presiona ESPACIO para reiniciar', canvas.width/2, 260);
+                ctx.font = '14px Georgia'; ctx.fillText('Toca DROP para reiniciar', canvas.width/2, 260);
             }
         }
         reset(); update();
     </script></body></html>
-    """, height=520)
+    """, height=720)
 
 
 def juego_carreritas():
