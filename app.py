@@ -149,7 +149,27 @@ st.markdown("""
         position: relative;
         z-index: 2;
     }
-    
+
+        /* Forzar fondo sólido y opacidad total en TODOS los elementos del chat */
+    [data-testid="stChatMessage"],
+    [data-testid="stChatMessageContent"],
+    [data-testid="stChatInput"],
+    [data-testid="stChatInputContainer"] {
+        background-color: #FFF8EE !important;
+        position: relative !important;
+        z-index: 5 !important;
+        border-radius: 10px !important;
+    }
+
+    [data-testid="stChatMessageAvatarUser"],
+    [data-testid="stChatMessageAvatarAssistant"] {
+        z-index: 6 !important;
+    }
+
+    section.main > div {
+        position: relative !important;
+        z-index: 3 !important;
+    }
 </style>
 """, unsafe_allow_html=True)
 
