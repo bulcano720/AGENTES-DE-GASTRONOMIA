@@ -1,0 +1,5 @@
+pedidos.db
+pedidos.db-wal
+pedidos.db-shm
+.streamlit/secrets.toml
+__pycache__/
